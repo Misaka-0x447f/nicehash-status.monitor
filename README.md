@@ -1,0 +1,2 @@
+# nicehashStatus
+摸鱼

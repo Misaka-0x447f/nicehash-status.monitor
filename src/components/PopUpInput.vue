@@ -1,20 +1,23 @@
 <template>
     <div id="pop-up">
         <div id="ani">
-            <div id="ani-left-panel" class="ani">
-
+            <div class="ani panel panel-1">
             </div>
-            <div id="ani-center-panel" class="ani">
-
+            <div class="ani panel panel-2">
             </div>
-            <div id="ani-right-panel" class="ani">
-
+            <div class="ani panel panel-3">
+            </div>
+            <div class="ani panel panel-2">
+            </div>
+            <div class="ani panel panel-1">
             </div>
         </div>
         <div id="content" class="ani">
             <div id="content-internal" class="ani">
-                {{ title }}
-                <div>
+                <div class="title">
+                    {{ title }}
+                </div>
+                <div class="comment">
                     {{ comment }}
                 </div>
                 <label for="bitcoin-address-ime">address</label>
@@ -29,10 +32,14 @@
         name: "PopUpInput",
         props: ["title", "comment"],
         mounted: function () {
-            let elements = this.$el.querySelectorAll(".ani");
+            let elements = this.$el.getElementsByClassName("ani");
             for (let i of elements) {
                 i.style.animationPlayState = "running";
             }
+            /* focus once not works here, this may caused by animation */
+            window.addEventListener("keydown", function () {
+                document.getElementById("bitcoin-address-ime").focus();
+            });
         }
     };
 </script>
@@ -41,6 +48,7 @@
     @initial-delay: 0.5s;
     @ani: 0.8s ease-in-out forwards paused;
     @theme-color-main: wheat;
+    @theme-color-main-fade: rgba(245, 222, 179, 0.1);
 
     #bitcoin-address-ime {
         min-width: 34.2ch;
@@ -49,6 +57,15 @@
     #pop-up {
         /* help animation element positioning */
         position: relative;
+    }
+
+    .title{
+        font-size: 1.5em;
+    }
+
+    .comment{
+        font-size: 0.8em;
+        opacity: 0.8;
     }
 
     #ani {
@@ -60,16 +77,24 @@
         z-index: -65536;
     }
 
-    #ani-left-panel, #ani-right-panel {
-        animation: side @ani;
-        animation-delay: @initial-delay;
+    .panel{
         height: 100%;
     }
 
-    #ani-center-panel {
-        animation: center @ani;
+    .panel-1 {
+        animation: panel-1 @ani;
         animation-delay: @initial-delay;
-        height: 100%;
+    }
+
+    .panel-2 {
+        animation: panel-2 @ani;
+        animation-delay: @initial-delay;
+        background-color: @theme-color-main;
+    }
+
+    .panel-3 {
+        animation: panel-3 @ani;
+        animation-delay: @initial-delay;
     }
 
     #content {
@@ -78,6 +103,7 @@
         visibility: hidden;
         padding: 1em 2em;
         border: @theme-color-main 1px solid;
+        background-color: @theme-color-main-fade;
     }
 
     #content-internal{
@@ -91,7 +117,6 @@
         50% {
             visibility: hidden;
         }
-
         100% {
             visibility: visible;
         }
@@ -99,48 +124,29 @@
 
     @keyframes content-internal {
         50% {
-            top: 0.5em;
+            top: 0.2em;
+            opacity: 0;
         }
         100% {
             top: 0;
+            opacity: 1;
         }
     }
 
-    @keyframes side {
-        0% {
-            flex: 100;
-            background: none;
-        }
-        49.999% {
-            flex: 0;
-            background: none;
-        }
-        50% {
-            flex: 100;
-            background: @theme-color-main;
-        }
-        100% {
-            flex: 0;
-            background: @theme-color-main;
-        }
+    @keyframes panel-1 {
+        0% {flex: 10000}
+        55% {flex: 0}
     }
 
-    @keyframes center {
-        0% {
-            flex: 0;
-            background: @theme-color-main;
-        }
-        49.999% {
-            flex: 200;
-            background: @theme-color-main;
-        }
-        50% {
-            flex: 0;
-            background: none;
-        }
-        100% {
-            flex: 200;
-            background: none;
-        }
+    @keyframes panel-2 {
+        0% {flex: 0}
+        45% {flex: 10000}
+        55% {flex: 10000}
+        100% {flex: 0}
+    }
+
+    @keyframes panel-3 {
+        45% {flex: 0}
+        100% {flex: 20000}
     }
 </style>

@@ -13,7 +13,11 @@
     };
 </script>
 
-<style>
+<style lang="less">
+    @theme-color-main: wheat;
+    @theme-color-main-fade: rgba(245, 222, 179, 0.67);
+    @theme-color-main-fade-2: rgba(245, 222, 179, 0.33);
+
     #container {
         display: flex;
         width: 100vw;
@@ -23,7 +27,8 @@
     }
 
     input {
-        border: wheat 1px dashed;
+        border: none;
+        border-bottom: @theme-color-main-fade 1px dashed;
         background: none;
         padding: 0.3em 0.2em;
         margin: 0.3em 0;
@@ -34,23 +39,28 @@
 
     input:focus {
         outline: none;
-        border: wheat 1px solid;
+        border: none;
+        border-bottom: @theme-color-main-fade 1px solid;
+    }
+
+    input::placeholder {
+        color: @theme-color-main-fade-2;
     }
 
     html {
-        font-size: 16px;
-        font-family: "Source Code Pro", "Consolas", monospace;
+        font-size: 20px;
+        font-family: "Microsoft JhengHei UI", sans-serif;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
-        color: wheat;
-        background-color: wheat;
+        color: @theme-color-main;
+        background-color: @theme-color-main;
     }
 
-    body{
+    body {
         margin: 0;
     }
 
-    #background-image{
+    #background-image {
         background: url("./assets/pexels-photo-14676-cc0.png");
         background-size: cover;
         width: 100vw;
@@ -58,6 +68,6 @@
         position: fixed;
         top: 0;
         z-index: -2147483647;
-        filter: saturate(75%) brightness(50%);
+        filter: saturate(50%) brightness(66%);
     }
 </style>

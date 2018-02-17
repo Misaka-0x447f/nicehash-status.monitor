@@ -4,6 +4,10 @@ Nicehash miner monitor powered by vue ~~-摸了-~~
 
 ~~--哪来的狗，QNMD--~~
 
+#Screenshots
+
+![capture](https://user-images.githubusercontent.com/15797507/36338832-e3d2ac2e-13f3-11e8-9ef0-eabcc8c8982c.JPG)
+
 ### NPM Official help: Build Setup
 
 ``` bash

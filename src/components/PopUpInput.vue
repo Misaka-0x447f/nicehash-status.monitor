@@ -1,5 +1,5 @@
 <template>
-    <div id="pop-up">
+    <div id="component-root">
         <div id="ani">
             <div class="ani panel panel-1">
             </div>
@@ -14,14 +14,17 @@
         </div>
         <div id="content" class="ani">
             <div id="content-internal" class="ani">
-                <div class="title">
-                    {{ title }}
+                <div>
+                    <span class="comment" v-html="commentComputed">
+                    </span>
                 </div>
-                <div class="comment">
-                    {{ comment }}
+                <div>
+                    <input id="bitcoin-address-ime" class="monospaced" placeholder="address" spellcheck="false"
+                           v-model="bitcoinAddress">
                 </div>
-                <label for="bitcoin-address-ime">address</label>
-                <input id="bitcoin-address-ime">
+                <div id="confirm" class="button" v-on:click="confirm">
+                    Okay
+                </div>
             </div>
         </div>
     </div>
@@ -30,7 +33,41 @@
 <script>
     export default {
         name: "PopUpInput",
-        props: ["title", "comment"],
+        props: ["comment", "onConfirmEventName"],
+        data: function () {
+            return {
+                bitcoinAddress: ""
+            };
+        },
+        computed: {
+            commentComputed: function () {
+                /* "**" is special here. the component will parse it as a important word. html should be filtered. */
+                function escapeHTML (unsafeStr) {
+                    return unsafeStr
+                        .replace(/&/g, "&amp;")
+                        .replace(/</g, "&lt;")
+                        .replace(/>/g, "&gt;")
+                        .replace(/"/g, "&quot;")
+                        .replace(/'/g, "&#39;")
+                        .replace(/\//g, "&#x2F;");
+                }
+                let sto = this.comment;
+                sto = escapeHTML(sto);
+                /* replace "important" mark */
+                let i = 0;
+                while (sto.match(/\*{2}/)) {
+                    if (i % 2 === 0) {
+                        sto = sto.replace(/\*{2}/, "<span vue-user-generated-dom-5d1ref5 class=\"comment-important\">");
+                        i++;
+                    }
+                    if (i % 2 === 1) {
+                        sto = sto.replace(/\*{2}/, "</span>");
+                        i++;
+                    }
+                }
+                return sto;
+            }
+        },
         mounted: function () {
             let elements = this.$el.getElementsByClassName("ani");
             for (let i of elements) {
@@ -40,32 +77,69 @@
             window.addEventListener("keydown", function () {
                 document.getElementById("bitcoin-address-ime").focus();
             });
+        },
+        methods: {
+            confirm: function () {
+                this.$emit(this.onConfirmEventName, this.bitcoinAddress);
+            }
         }
     };
 </script>
+
+<style lang="less">
+    /* this stylesheet is "scoped" by adding custom attr */
+    @theme-color-main: wheat;
+    .comment-important[vue-user-generated-dom-5d1ref5]{
+        font-size: 1.5em;
+        color: @theme-color-main;
+    }
+</style>
 
 <style lang="less" scoped>
     @initial-delay: 0.5s;
     @ani: 0.8s ease-in-out forwards paused;
     @theme-color-main: wheat;
-    @theme-color-main-fade: rgba(245, 222, 179, 0.1);
+    @theme-color-main-fade: rgba(245, 222, 179, 0.67);
+    @theme-color-main-fade-2: rgba(245, 222, 179, 0.33);
+    @theme-color-main-fade-3: rgba(245, 222, 179, 0.1);
+
+    #component-root{
+        text-shadow: 0 0 2px black;
+    }
 
     #bitcoin-address-ime {
+        font-size: 0.8em;
         min-width: 34.2ch;
-    }
-
-    #pop-up {
-        /* help animation element positioning */
-        position: relative;
-    }
-
-    .title{
-        font-size: 1.5em;
     }
 
     .comment{
         font-size: 0.8em;
-        opacity: 0.8;
+        color: @theme-color-main-fade;
+    }
+
+    #content-internal>div:not(:first-child){
+        margin-top: 0.5em;
+    }
+
+    .button{
+        padding: 0.5em 1.5em;
+        background-color: @theme-color-main-fade-3;
+    }
+
+    .button:hover{
+        background-color: @theme-color-main-fade-2;
+    }
+
+    #confirm{
+        float: right;
+        font-size: 0.8em;
+    }
+
+    /*** animations ***/
+
+    #component-root {
+        /* help animation element positioning */
+        position: relative;
     }
 
     #ani {
@@ -102,8 +176,6 @@
         animation-delay: @initial-delay;
         visibility: hidden;
         padding: 1em 2em;
-        border: @theme-color-main 1px solid;
-        background-color: @theme-color-main-fade;
     }
 
     #content-internal{
@@ -148,5 +220,9 @@
     @keyframes panel-3 {
         45% {flex: 0}
         100% {flex: 20000}
+    }
+
+    .monospaced{
+        font-family: "Source Code Pro", "Consolas", monospace;
     }
 </style>

@@ -7,8 +7,9 @@ const port = 3000;
 
 const server = http.createServer((req, res) => {
     res.statusCode = 200;
-    res.setHeader("Content-Type", "text/plain");
+    res.setHeader("Content-Type", "application/json");
     res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
 
     let queryData = url.parse(req.url, true).query;
 

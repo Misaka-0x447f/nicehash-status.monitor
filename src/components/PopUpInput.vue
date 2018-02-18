@@ -15,15 +15,17 @@
         <div id="content" class="ani">
             <div id="content-internal" class="ani">
                 <div>
-                    <span class="comment" v-html="commentComputed">
-                    </span>
+                    <label for="bitcoin-address-ime" class="comment" v-html="commentComputed">
+                    </label>
                 </div>
                 <div>
-                    <input id="bitcoin-address-ime" class="monospaced" placeholder="address" spellcheck="false"
-                           v-model="bitcoinAddress">
+                    <input id="bitcoin-address-ime" class="monospaced" :placeholder="placeholder" spellcheck="false"
+                           v-model="textIn">
                 </div>
-                <div id="confirm" class="button" v-on:click="confirm">
-                    Okay
+                <div id="button-flex-container">
+                    <div v-for="i in buttons" class="button" v-on:click="buttonClick(i)" :key="i.length">
+                        {{ i.text }}
+                    </div>
                 </div>
             </div>
         </div>
@@ -33,10 +35,21 @@
 <script>
     export default {
         name: "PopUpInput",
-        props: ["comment", "onConfirmEventName"],
+        props: {
+            comment: {
+                type: String
+            },
+            placeholder: {
+                default: "",
+                type: String
+            },
+            buttons: {
+                type: Object
+            }
+        },
         data: function () {
             return {
-                bitcoinAddress: ""
+                textIn: ""
             };
         },
         computed: {
@@ -79,8 +92,12 @@
             });
         },
         methods: {
-            confirm: function () {
-                this.$emit(this.onConfirmEventName, this.bitcoinAddress);
+            buttonClick: function (s) {
+                if (s.hasOwnProperty("payload")) {
+                    this.$emit(s.eventString, this.textIn);
+                } else {
+                    this.$emit(s.eventString);
+                }
             }
         }
     };
@@ -122,7 +139,9 @@
     }
 
     .button{
-        padding: 0.5em 1.5em;
+        cursor: default;
+        font-size: 0.8em;
+        padding: 0.3em 1em;
         background-color: @theme-color-main-fade-3;
     }
 
@@ -130,9 +149,20 @@
         background-color: @theme-color-main-fade-2;
     }
 
-    #confirm{
-        float: right;
-        font-size: 0.8em;
+    #button-flex-container{
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+    }
+
+    #button-flex-container>.button:not(:first-child){
+        margin-left: 0.2em;
+    }
+
+    #content{
+        border-width: 1px 0;
+        border-color: @theme-color-main-fade;
+        border-style: solid;
     }
 
     /*** animations ***/
@@ -148,7 +178,8 @@
         width: 100%;
         height: 100%;
         display: flex;
-        z-index: -65536;
+        z-index: 1;
+        pointer-events: none;
     }
 
     .panel{

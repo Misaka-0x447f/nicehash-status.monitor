@@ -6,10 +6,9 @@ const hostname = "127.0.0.1";
 const port = 3000;
 
 const server = http.createServer((req, res) => {
-    let responseBody = "";
-
     res.statusCode = 200;
     res.setHeader("Content-Type", "text/plain");
+    res.setHeader("Access-Control-Allow-Origin", "*");
 
     let queryData = url.parse(req.url, true).query;
 
@@ -53,8 +52,10 @@ const server = http.createServer((req, res) => {
                 value: queryData.key
             }
         ]);
+    } else {
+        res.write("invalid request to " + url.parse(req.url).pathname);
+        res.end();
     }
-    res.write(responseBody);
 });
 
 server.listen(port, hostname, () => {

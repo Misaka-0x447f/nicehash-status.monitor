@@ -1,7 +1,8 @@
 <template>
     <div id="component-root">
         <pop-up-input
-            v-bind="Dialog"
+            v-bind="dialog"
+            @userInput="onUserInput"
         ></pop-up-input>
         <bottom-center-info></bottom-center-info>
     </div>
@@ -12,6 +13,8 @@
     import PopUpInput from "./PopUpInput";
     import BottomCenterInfo from "./BottomCenterInfo";
 
+    import Nicehash from "../library/nicehash";
+
     export default {
         components: {
             BottomCenterInfo,
@@ -20,23 +23,54 @@
         name: "Setup",
         data () {
             return {
-                Dialog: {
+                dialog: {
                     /* "**" is special here. the component will parse it as a important word. html should be filtered. */
                     comment: "to **setup**, field \"address\" is required",
                     placeholder: "address (nicehash)",
                     buttons: [
                         {
-                            text: "?",
-                            eventString: "clicked: faq"
+                            text: "?"
                         },
                         {
                             text: "Okay",
-                            eventString: "clicked: user-login",
-                            payload: true
+                            eventString: "userRequestLogin",
+                            payload: true,
+                            linkValidator: true
                         }
-                    ]
-                }
+                    ],
+                    isValid: "unknown", /* will be changed by validator */
+                    validSymbol: "✓",
+                    invalidSymbol: "×",
+                    invalidTips: "Invalid address"
+                },
+                nicehash: new Nicehash()
             };
+        },
+        methods: {
+            onUserInput: function (input) {
+                if (
+                    (input.length === 34 && input.slice(0, 1) === "1") ||
+                    (input.length === 34 && input.slice(0, 1) === "3") ||
+                    (input.length === 42 && input.slice(0, 3) === "bc1")
+                ) {
+                    this.nicehash.isValidAddress(input,
+                        (response) => {
+                            this.dialog.isValid = response;
+                        },
+                        () => {
+                            this.dialog.isValid = "unknown";
+                        }
+                    );
+                } else if (input.length === 0) {
+                    this.dialog.isValid = "unknown";
+                } else {
+                    // Question
+                    // It works but raised a weak warning:
+                    // Assigned expression type string is not assignable to type string
+                    // Have no idea why.
+                    this.dialog.isValid = "false";
+                }
+            }
         }
     };
 </script>

@@ -19,13 +19,25 @@
                     </label>
                 </div>
                 <div>
-                    <input id="bitcoin-address-ime" class="monospaced" :placeholder="placeholder" spellcheck="false"
-                           v-model="textIn">
+                    <input id="bitcoin-address-ime" class="monospaced" spellcheck="false"
+                           :placeholder="placeholder" v-model="textIn" :class="{'invalid-input': showExtendInvalidTips && isValid === 'false'}">
                 </div>
                 <div id="button-flex-container">
-                    <div v-for="i in buttons" class="button" v-on:click="buttonClick(i)" :key="i.length">
+                    <span class="valid-indicator" v-show="isValid === 'false'">
+                        {{ invalidSymbol }}
+                        <span class="invalid-tips" v-show="showExtendInvalidTips">
+                                {{ invalidTips }}
+                        </span>
+                    </span>
+                    <span class="valid-indicator" v-show="isValid === 'true'">
+                        {{ validSymbol }}
+                    </span>
+                    <span class="flex-split">
+
+                    </span>
+                    <span v-for="i in buttons" class="button" :class="{disabled: (i.linkValidator && isValid !== 'true')}" v-on:click="buttonClick(i)" :key="i.length">
                         {{ i.text }}
-                    </div>
+                    </span>
                 </div>
             </div>
         </div>
@@ -33,6 +45,27 @@
 </template>
 
 <script>
+    /**
+     * Input component.
+     *
+     * @param param comments.
+     * * means optional
+     * typeof  name                                 comment
+     * array   (anonymous)                          A group of settings.
+     * string  (anonymous).comment                  The message which will shown on the dialog.
+     * string  (anonymous).placeholder              Placeholder in the input box.
+     * array   (anonymous).buttons                  Anonymous array. Defined a group of buttons.
+     * string  (anonymous).buttons[i].text          Button label.
+     * string* (anonymous).buttons[i].eventString   Event name which will be emitted on click.
+     * bool*   (anonymous).buttons[i].payload       Should I emit event with user input?
+     * bool*   (anonymous).buttons[i].linkValidator Should I link disable status to validator?
+     * string* (anonymous).isValid                  Is input valid? "true", "false", "unknown"
+     * string* (anonymous).validSymbol              Shown when input is valid. A symbol like {👌, ●, ✓} is recommended.
+     * string* (anonymous).invalidSymbol            Shown when invalid. How about {×}？
+     * string* (anonymous).invalidTips              Shown when invalid and user clicked disabled button.
+     *
+     * @event userInput - payload is the input string.
+     */
     export default {
         name: "PopUpInput",
         props: {
@@ -44,12 +77,29 @@
                 type: String
             },
             buttons: {
-                type: Object
+                type: Array
+            },
+            isValid: {
+                default: "unset",
+                type: String
+            },
+            validSymbol: {
+                default: "",
+                type: String
+            },
+            invalidSymbol: {
+                default: "",
+                type: String
+            },
+            invalidTips: {
+                default: "",
+                type: String
             }
         },
         data: function () {
             return {
-                textIn: ""
+                textIn: "",
+                showExtendInvalidTips: false
             };
         },
         computed: {
@@ -87,17 +137,24 @@
                 i.style.animationPlayState = "running";
             }
             /* focus once not works here, this may caused by animation */
-            window.addEventListener("keydown", function () {
-                document.getElementById("bitcoin-address-ime").focus();
+            window.addEventListener("keydown", () => {
+                this.$el.querySelector("#bitcoin-address-ime").focus();
+            });
+            this.$el.querySelector("#bitcoin-address-ime").addEventListener("input", () => {
+                this.$emit("userInput", this.$el.querySelector("#bitcoin-address-ime").value);
+                this.showExtendInvalidTips = false;
             });
         },
         methods: {
             buttonClick: function (s) {
-                if (s.hasOwnProperty("payload")) {
-                    this.$emit(s.eventString, this.textIn);
-                } else {
-                    this.$emit(s.eventString);
+                if (s.hasOwnProperty("eventString")) {
+                    if (s.hasOwnProperty("payload") && s.payload === true) {
+                        this.$emit(s.eventString, this.textIn);
+                    } else {
+                        this.$emit(s.eventString);
+                    }
                 }
+                this.showExtendInvalidTips = true;
             }
         }
     };
@@ -134,25 +191,41 @@
         color: @theme-color-main-fade;
     }
 
+    .invalid-tips{
+        font-size: 0.85em;
+    }
+
     #content-internal>div:not(:first-child){
         margin-top: 0.5em;
     }
 
     .button{
         cursor: default;
-        font-size: 0.8em;
         padding: 0.3em 1em;
         background-color: @theme-color-main-fade-3;
     }
 
-    .button:hover{
+    .button.disabled{
+        filter: saturate(0%);
+    }
+
+    .button:hover:not(.disabled){
         background-color: @theme-color-main-fade-2;
     }
 
+    .invalid-input{
+        background-color: rgba(139, 0, 0, 0.25);
+    }
+
     #button-flex-container{
+        font-size: 0.8em;
         display: flex;
         align-items: center;
         justify-content: flex-end;
+    }
+
+    .flex-split{
+        margin-right: auto;
     }
 
     #button-flex-container>.button:not(:first-child){

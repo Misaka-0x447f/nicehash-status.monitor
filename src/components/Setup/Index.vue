@@ -11,10 +11,10 @@
 
 <script>
 
-    import PopUpInput from "./PopUpInput";
+    import PopUpInput from "../PopUpInput";
     import BottomCenterInfo from "./BottomCenterInfo";
 
-    import Nicehash from "../library/nicehash";
+    import Nicehash from "../../library/nicehash";
     import * as Cookies from "es-cookie";
 
     export default {
@@ -22,7 +22,7 @@
             BottomCenterInfo,
             PopUpInput
         },
-        name: "Setup",
+        name: "setup-index",
         data () {
             return {
                 dialog: {

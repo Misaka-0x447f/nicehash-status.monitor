@@ -22,8 +22,8 @@
         display: flex;
         width: 100vw;
         height: 100vh;
-        align-items: center;
         justify-content: center;
+        align-items: center;
     }
 
     input {

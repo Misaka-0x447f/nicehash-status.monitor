@@ -54,6 +54,7 @@
         -moz-osx-font-smoothing: grayscale;
         color: @theme-color-main;
         background-color: @theme-color-main;
+        user-select: none;
     }
 
     body {

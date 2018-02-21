@@ -1,5 +1,5 @@
 <template>
-    <div id="component-root">
+    <div class="component-root">
         <div id="ani">
             <div class="ani panel panel-1">
             </div>
@@ -19,8 +19,12 @@
                     </label>
                 </div>
                 <div>
-                    <input id="bitcoin-address-ime" class="monospaced" spellcheck="false"
-                           :placeholder="placeholder" v-model="textIn" :class="{'invalid-input': showExtendInvalidTips && isValid === 'false'}">
+                    <form v-on:submit.prevent="enterClick()">
+                        <input id="bitcoin-address-ime" class="monospaced" spellcheck="false" autocomplete="false"
+                               :placeholder="placeholder" v-model="textIn"
+                               :class="{'invalid-input': showExtendInvalidTips && isValid === 'false'}"
+                        >
+                    </form>
                 </div>
                 <div id="button-flex-container">
                     <span class="valid-indicator" v-show="isValid === 'false'">
@@ -50,19 +54,31 @@
      *
      * @param param comments.
      * * means optional
+     * × Planed to be remove. Development must be completed before apply to more component.
      * typeof  name                                 comment
+     * ---Common---
      * array   (anonymous)                          A group of settings.
      * string  (anonymous).comment                  The message which will shown on the dialog.
-     * string  (anonymous).placeholder              Placeholder in the input box.
-     * array   (anonymous).buttons                  Anonymous array. Defined a group of buttons.
+     * ×string  (anonymous).placeholder             Placeholder in the input box.
+     * ---External Validator API---
+     * *string (anonymous).isValid                  Is input valid? "true", "false", "unknown"
+     * *string (anonymous).validSymbol              Shown when input is valid. A symbol like {👌, ●, ✓} is recommended.
+     * *string (anonymous).invalidSymbol            Shown when invalid. How about {×}？
+     * *string (anonymous).invalidTips              Shown when invalid and user clicked disabled button.
+     * ---Buttons---
+     * array   (anonymous).buttons                  A group of buttons definition.
      * string  (anonymous).buttons[i].text          Button label.
-     * string* (anonymous).buttons[i].eventString   Event name which will be emitted on click.
-     * bool*   (anonymous).buttons[i].payload       Should I emit event with user input?
-     * bool*   (anonymous).buttons[i].linkValidator Should I link disable status to validator?
-     * string* (anonymous).isValid                  Is input valid? "true", "false", "unknown"
-     * string* (anonymous).validSymbol              Shown when input is valid. A symbol like {👌, ●, ✓} is recommended.
-     * string* (anonymous).invalidSymbol            Shown when invalid. How about {×}？
-     * string* (anonymous).invalidTips              Shown when invalid and user clicked disabled button.
+     * *bool   (anonymous).buttons[i].linkValidator Should I link disable status to validator?
+     * ---Buttons action: emit event---
+     * *string (anonymous).buttons[i].eventString   Event name which will be emitted on click.
+     * *bool   (anonymous).buttons[i].payload       Should I emit event with user input?
+     * ---Buttons action: goto---
+     * *string (anonymous).buttons[i].goto          On click go to. Router string required.
+     *
+     * -----UNDER CONSTRUCTION-----
+     * ---Input Field---
+     * array   (anonymous).field                    A group of input field definition.
+     * string  (anonymous).field[i].placeholder     Placeholder string.
      *
      * @event userInput - payload is the input string.
      */
@@ -155,6 +171,16 @@
                     }
                 }
                 this.showExtendInvalidTips = true;
+
+                // GOTO route?
+                if ((s.hasOwnProperty("goto") && (!s.hasOwnProperty("linkValidator") || s.linkValidator !== true)) ||
+                    (s.hasOwnProperty("goto") && s.linkValidator === true && this.isValid === "true")
+                ) {
+                    this.$router.push(s.goto);
+                }
+            },
+            enterClick: function () {
+                this.buttonClick(this.buttons[this.buttons.length - 1]);
             }
         }
     };
@@ -170,14 +196,14 @@
 </style>
 
 <style lang="less" scoped>
-    @initial-delay: 0.5s;
-    @ani: 0.8s ease-in-out forwards paused;
+    /* Animation duration must be matched goto time (method.buttonClick) */
+    @ani: 0.8s 0.5s ease-in-out forwards paused;
     @theme-color-main: wheat;
     @theme-color-main-fade: rgba(245, 222, 179, 0.67);
     @theme-color-main-fade-2: rgba(245, 222, 179, 0.33);
     @theme-color-main-fade-3: rgba(245, 222, 179, 0.1);
 
-    #component-root{
+    .component-root{
         text-shadow: 0 0 2px black;
     }
 
@@ -240,7 +266,7 @@
 
     /*** animations ***/
 
-    #component-root {
+    .component-root {
         /* help animation element positioning */
         position: relative;
     }
@@ -261,30 +287,25 @@
 
     .panel-1 {
         animation: panel-1 @ani;
-        animation-delay: @initial-delay;
     }
 
     .panel-2 {
         animation: panel-2 @ani;
-        animation-delay: @initial-delay;
         background-color: @theme-color-main;
     }
 
     .panel-3 {
         animation: panel-3 @ani;
-        animation-delay: @initial-delay;
     }
 
     #content {
         animation: content @ani;
-        animation-delay: @initial-delay;
         visibility: hidden;
         padding: 1em 2em;
     }
 
     #content-internal{
         animation: content-internal @ani;
-        animation-delay: @initial-delay;
         position: relative;
         top: 0;
     }

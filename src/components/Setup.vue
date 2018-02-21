@@ -1,8 +1,9 @@
 <template>
-    <div id="component-root">
+    <div class="component-root">
         <pop-up-input
             v-bind="dialog"
             @userInput="onUserInput"
+            @userSetupAddress="onUserSetupAddress"
         ></pop-up-input>
         <bottom-center-info></bottom-center-info>
     </div>
@@ -14,6 +15,7 @@
     import BottomCenterInfo from "./BottomCenterInfo";
 
     import Nicehash from "../library/nicehash";
+    import * as Cookies from "es-cookie";
 
     export default {
         components: {
@@ -28,14 +30,18 @@
                     comment: "to **setup**, field \"address\" is required",
                     placeholder: "address (nicehash)",
                     buttons: [
+                        /* future button
                         {
-                            text: "?"
+                            text: "?",
+                            goto: "faq"
                         },
+                        */
                         {
                             text: "Okay",
-                            eventString: "userRequestLogin",
+                            eventString: "userSetupAddress",
                             payload: true,
-                            linkValidator: true
+                            linkValidator: true,
+                            goto: "/"
                         }
                     ],
                     isValid: "unknown", /* will be changed by validator */
@@ -70,6 +76,9 @@
                     // Have no idea why.
                     this.dialog.isValid = "false";
                 }
+            },
+            onUserSetupAddress: function (input) {
+                Cookies.set("address", input);
             }
         }
     };

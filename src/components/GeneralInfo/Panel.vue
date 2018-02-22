@@ -1,5 +1,8 @@
 <template>
     <div class="component-root">
+        <small-meter>
+
+        </small-meter>
         <sharp-meter
             v-bind="currentSpeed"
         ></sharp-meter>
@@ -10,9 +13,12 @@
     // import nicehash from "../../library/nicehash";
 
     import SharpMeter from "./SharpMeter";
+    import SmallMeter from "./SmallMeter";
 
     export default {
-        components: {SharpMeter},
+        components: {
+            SmallMeter,
+            SharpMeter},
         name: "panel",
         data: function () {
             return {

@@ -40,7 +40,7 @@
         name: "sharp-meter",
         props: {
             size: {
-                default: 200,
+                default: 300,
                 type: Number
             },
             borderWidth: {
@@ -93,10 +93,10 @@
             };
         },
         mounted: function () {
-            this.progressMask = this.circleCut(this.center, this.center, this.center + 1, -45, 270 * (1 - this.value / this.valueMax));
+            this.progressMask = this.sweepPath(this.center, this.center, this.center + 1, -45, 270 * (1 - this.value / this.valueMax));
         },
         methods: {
-            circleCut: function (centerX, centerY, r, start, duration) {
+            arcPath: function (centerX, centerY, r, start, duration) {
                 // This function will throw back a string in path syntax for using. All angle unit are Degree.
                 function polarToRect (centerX, centerY, r, angleInDegrees) {
                     // angleInDegrees starts at the top of circle
@@ -111,12 +111,17 @@
 
                 let startPos = polarToRect(centerX, centerY, r, start);
                 let endPos = polarToRect(centerX, centerY, r, start + duration);
-                let arcSweep = duration <= 180 ? "0" : "1";
+                let rotation = Math.floor(Math.abs(duration) / 180) % 2 === 0 ? 0 : 1;
                 return [
-                    "M", centerX, centerY,
                     "L", startPos.x, startPos.y,
                     // A rx ry x-axis-rotation large-arc-flag sweep-flag x         y
-                    "A", r, r, 0, arcSweep, 0, endPos.x, endPos.y,
+                    "A", r, r, 0, rotation, duration > 0 ? 0 : 1, endPos.x, endPos.y
+                ].join(" ");
+            },
+            sweepPath: function (centerX, centerY, r, start, duration) {
+                return [
+                    "M", centerX, centerY,
+                    this.arcPath(centerX, centerY, r, start, duration),
                     "L", centerX, centerY
                 ].join(" ");
             }

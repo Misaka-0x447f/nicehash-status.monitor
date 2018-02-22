@@ -62,7 +62,7 @@
     }
 
     #background-image {
-        background: url("./assets/pexels-photo-14676-cc0.png");
+        background: url("./assets/wallpaper.jpg");
         background-size: cover;
         width: 100vw;
         height: 100vh;

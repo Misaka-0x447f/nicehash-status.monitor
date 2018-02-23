@@ -21,9 +21,15 @@ export default class Nicehash {
         this.pendingRequest = {};
         this.lastSentRequestAt = 0;
     }
-    getProvider (address, callbackSuccess, callbackFailed) {
-        this.httpRequest("stats.provider", {addr: address}, callbackSuccess, callbackFailed);
+
+    setAddress (address) {
+        this.address = address;
     }
+
+    getProvider (callbackSuccess, callbackFailed) {
+        this.httpRequest("stats.provider", {addr: this.address}, callbackSuccess, callbackFailed);
+    }
+
     isValidAddress (address, callbackSuccess, callbackFailed) {
         /**
          * This method will callback with a boolean which indicates if it is a valid address.
@@ -37,12 +43,19 @@ export default class Nicehash {
                 }
             }, callbackFailed);
     }
-    getProviderEx (address, callbackSuccess, callbackFailed) {
-        this.httpRequest("stats.provider.ex", {addr: address, from: Nicehash.getUnixTimeStamp(3 * 86400)}, callbackSuccess, callbackFailed, 15);
+
+    getProviderEx (callbackSuccess, callbackFailed) {
+        this.httpRequest("stats.provider.ex", {
+            addr: this.address,
+            from: Nicehash.getUnixTimeStamp(3 * 86400)
+        }, callbackSuccess, callbackFailed, 15);
     }
 
-    getProviderWorkers (address, callbackSuccess, callbackFailed) {
-        this.httpRequest("stats.provider.ex", {addr: address, from: Nicehash.getUnixTimeStamp(3 * 86400)}, callbackSuccess, callbackFailed);
+    getProviderWorkers (callbackSuccess, callbackFailed) {
+        this.httpRequest("stats.provider.ex", {
+            addr: this.address,
+            from: Nicehash.getUnixTimeStamp(3 * 86400)
+        }, callbackSuccess, callbackFailed);
     }
 
     httpRequest (method, paramArray, callbackSuccess, callbackFailed, throttle = 3) {
@@ -93,6 +106,7 @@ export default class Nicehash {
                 callbackFailed(error);
             });
     }
+
     static getUnixTimeStamp (offset = 0) {
         return Math.round((new Date()).getTime() / 1000 - offset);
     }

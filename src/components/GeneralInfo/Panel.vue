@@ -25,9 +25,10 @@
         components: {
             LabelNumber,
             SmallMeter,
-            SharpMeter},
+            SharpMeter
+        },
         name: "panel",
-        data: function () {
+        data: function() {
             return {
                 currentSpeed: {
                     value: -0.7,
@@ -37,7 +38,7 @@
                 }
             };
         },
-        mounted: function () {
+        mounted: function() {
             setInterval(() => {
                 this.currentSpeed.value = parseFloat((this.currentSpeed.value + 0.003).toFixed(3));
             }, 33);
@@ -46,12 +47,13 @@
 </script>
 
 <style scoped>
-    .component-root{
+    .component-root {
         display: flex;
         justify-content: center;
         align-content: center;
     }
-    div>*:not(:first-child){
+
+    div > *:not(:first-child) {
         margin-left: 0.5em;
     }
 </style>

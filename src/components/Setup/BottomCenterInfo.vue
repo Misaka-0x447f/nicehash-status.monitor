@@ -18,7 +18,7 @@
     @theme-color-main: rgba(245, 222, 179, 0.3);
     @theme-color-bright: rgba(245, 222, 179, 0.6);
 
-    .component-root{
+    .component-root {
         position: absolute;
         bottom: 2em;
         left: 0;
@@ -30,15 +30,16 @@
         text-align: center;
         color: @theme-color-main;
     }
-    #info{
+
+    #info {
         width: 20em;
         padding-top: 1.5em;
         border-top: @theme-color-main 1px dashed;
-        a, a:visited{
+        a, a:visited {
             text-decoration: none;
             color: inherit;
         }
-        a:hover{
+        a:hover {
             color: @theme-color-bright;
         }
     }

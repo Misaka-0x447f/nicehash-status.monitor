@@ -22,10 +22,13 @@
                 <path id="arc_mask2" d="" fill="black"/>
             </mask>
 
-            <circle class="paint1" :cx="center" :cy="center" :r="r + borderWidth / 2" mask="url(#mask1)" style="opacity: 0.8"/>
-            <circle class="paint1" :cx="center" :cy="center" :r="r + borderWidth / 2" mask="url(#mask2)" style="opacity: 0.15"/>
+            <circle class="paint1" :cx="center" :cy="center" :r="r + borderWidth / 2" mask="url(#mask1)"
+                    style="opacity: 0.8"/>
+            <circle class="paint1" :cx="center" :cy="center" :r="r + borderWidth / 2" mask="url(#mask2)"
+                    style="opacity: 0.15"/>
 
-            <text v-if="valueDigit" class="paint1 monospaced" id="value1" :x="center" :y="center" :style="{'font-size': valueFontSize}">
+            <text v-if="valueDigit" class="paint1 monospaced" id="value1" :x="center" :y="center"
+                  :style="{'font-size': valueFontSize}">
                 {{ stringifyValue(value) }}
             </text>
             <text class="paint1" id="label1 monospaced" :x="center" :y="center + halfSqrt2R">
@@ -69,34 +72,34 @@
             }
         },
         computed: {
-            d: function () {
+            d: function() {
                 return this.size - this.borderWidth;
             },
-            r: function () {
+            r: function() {
                 return this.d / 2;
             },
-            center: function () {
+            center: function() {
                 return this.size / 2;
             },
-            halfBorder: function () {
+            halfBorder: function() {
                 return this.borderWidth / 2;
             },
-            initialMaskPoint: function () {
+            initialMaskPoint: function() {
                 // 0,200 100,100 200,200
                 return "0," + this.size + " " +
                     this.center + "," + this.center + " " +
                     this.size + "," + this.size;
             },
-            halfSqrt2R: function () {
+            halfSqrt2R: function() {
                 return Math.sqrt(2) * this.r / 2;
             },
-            progressMask: function () {
+            progressMask: function() {
                 return this.sweepPath(this.center, this.center, this.center + 1, -45, 270 * (1 - (this.filteredValue - this.valueMin) / (this.valueMax - this.valueMin)));
             },
-            valueFontSize: function () {
+            valueFontSize: function() {
                 return (this.size / 24 + 50) / (this.stringifyValue(this.value).length / 2);
             },
-            filteredValue: function () {
+            filteredValue: function() {
                 if (this.value > this.valueMax) {
                     return this.valueMax;
                 }
@@ -106,15 +109,15 @@
                 return this.value;
             }
         },
-        data: function () {
+        data: function() {
             return {
                 maxFixedCount: 0
             };
         },
         methods: {
-            arcPath: function (centerX, centerY, r, start, duration) {
+            arcPath: function(centerX, centerY, r, start, duration) {
                 // This function will throw back a string in path syntax for using. All angle unit are Degree.
-                function polarToRect (centerX, centerY, r, angleInDegrees) {
+                function polarToRect(centerX, centerY, r, angleInDegrees) {
                     // angleInDegrees starts at the top of circle
                     let angleInRadians = angleInDegrees * Math.PI / 180.0;
 
@@ -134,14 +137,14 @@
                     "A", r, r, 0, rotation, duration > 0 ? 0 : 1, endPos.x, endPos.y
                 ].join(" ");
             },
-            sweepPath: function (centerX, centerY, r, start, duration) {
+            sweepPath: function(centerX, centerY, r, start, duration) {
                 return [
                     "M", centerX, centerY,
                     this.arcPath(centerX, centerY, r, start, duration),
                     "L", centerX, centerY
                 ].join(" ");
             },
-            stringifyValue: function (value) {
+            stringifyValue: function(value) {
                 let digit = value.toString().split(".");
                 let integer = digit[0];
                 let fixed = "";
@@ -162,7 +165,7 @@
                     return integer;
                 }
             },
-            padZero: function (source, counts) {
+            padZero: function(source, counts) {
                 // A simple and easy to understand pad zero function.
                 while (source.length < counts) {
                     source += "0";

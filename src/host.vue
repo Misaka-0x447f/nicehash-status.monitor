@@ -72,7 +72,7 @@
         filter: saturate(50%) brightness(66%);
     }
 
-    .monospaced{
+    .monospaced {
         font-family: "Source Code Pro", "Consolas", monospace;
         font-weight: 100;
     }

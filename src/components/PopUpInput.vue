@@ -39,7 +39,9 @@
                     <span class="flex-split">
 
                     </span>
-                    <span v-for="i in buttons" class="button" :class="{disabled: (i.linkValidator && isValid !== 'true')}" v-on:click="buttonClick(i)" :key="i.length">
+                    <span v-for="i in buttons" class="button"
+                          :class="{disabled: (i.linkValidator && isValid !== 'true')}" v-on:click="buttonClick(i)"
+                          :key="i.length">
                         {{ i.text }}
                     </span>
                 </div>
@@ -112,16 +114,16 @@
                 type: String
             }
         },
-        data: function () {
+        data: function() {
             return {
                 textIn: "",
                 showExtendInvalidTips: false
             };
         },
         computed: {
-            commentComputed: function () {
+            commentComputed: function() {
                 /* "**" is special here. the component will parse it as a important word. html should be filtered. */
-                function escapeHTML (unsafeStr) {
+                function escapeHTML(unsafeStr) {
                     return unsafeStr
                         .replace(/&/g, "&amp;")
                         .replace(/</g, "&lt;")
@@ -130,6 +132,7 @@
                         .replace(/'/g, "&#39;")
                         .replace(/\//g, "&#x2F;");
                 }
+
                 let sto = this.comment;
                 sto = escapeHTML(sto);
                 /* replace "important" mark */
@@ -147,7 +150,7 @@
                 return sto;
             }
         },
-        mounted: function () {
+        mounted: function() {
             let elements = this.$el.getElementsByClassName("ani");
             for (let i of elements) {
                 i.style.animationPlayState = "running";
@@ -162,7 +165,7 @@
             });
         },
         methods: {
-            buttonClick: function (s) {
+            buttonClick: function(s) {
                 if (s.hasOwnProperty("eventString")) {
                     if (s.hasOwnProperty("payload") && s.payload === true) {
                         this.$emit(s.eventString, this.textIn);
@@ -179,7 +182,7 @@
                     this.$router.push(s.goto);
                 }
             },
-            enterClick: function () {
+            enterClick: function() {
                 this.buttonClick(this.buttons[this.buttons.length - 1]);
             }
         }
@@ -189,7 +192,7 @@
 <style lang="less">
     /* this stylesheet is "scoped" by adding custom attr */
     @theme-color-main: wheat;
-    .comment-important[vue-user-generated-dom-5d1ref5]{
+    .comment-important[vue-user-generated-dom-5d1ref5] {
         font-size: 1.5em;
         color: @theme-color-main;
     }
@@ -203,7 +206,7 @@
     @theme-color-main-fade-2: rgba(245, 222, 179, 0.33);
     @theme-color-main-fade-3: rgba(245, 222, 179, 0.1);
 
-    .component-root{
+    .component-root {
         text-shadow: 0 0 2px black;
     }
 
@@ -212,53 +215,53 @@
         min-width: 34.2ch;
     }
 
-    .comment{
+    .comment {
         font-size: 0.8em;
         color: @theme-color-main-fade;
     }
 
-    .invalid-tips{
+    .invalid-tips {
         font-size: 0.85em;
     }
 
-    #content-internal>div:not(:first-child){
+    #content-internal > div:not(:first-child) {
         margin-top: 0.5em;
     }
 
-    .button{
+    .button {
         cursor: default;
         padding: 0.3em 1em;
         background-color: @theme-color-main-fade-3;
     }
 
-    .button.disabled{
+    .button.disabled {
         filter: saturate(0%);
     }
 
-    .button:hover:not(.disabled){
+    .button:hover:not(.disabled) {
         background-color: @theme-color-main-fade-2;
     }
 
-    .invalid-input{
+    .invalid-input {
         background-color: rgba(139, 0, 0, 0.25);
     }
 
-    #button-flex-container{
+    #button-flex-container {
         font-size: 0.8em;
         display: flex;
         align-items: center;
         justify-content: flex-end;
     }
 
-    .flex-split{
+    .flex-split {
         margin-right: auto;
     }
 
-    #button-flex-container>.button:not(:first-child){
+    #button-flex-container > .button:not(:first-child) {
         margin-left: 0.2em;
     }
 
-    #content{
+    #content {
         border-width: 1px 0;
         border-color: @theme-color-main-fade;
         border-style: solid;
@@ -281,7 +284,7 @@
         pointer-events: none;
     }
 
-    .panel{
+    .panel {
         height: 100%;
     }
 
@@ -304,19 +307,15 @@
         padding: 1em 2em;
     }
 
-    #content-internal{
+    #content-internal {
         animation: content-internal @ani;
         position: relative;
         top: 0;
     }
 
     @keyframes content {
-        50% {
-            visibility: hidden;
-        }
-        100% {
-            visibility: visible;
-        }
+        50% {visibility: hidden;}
+        100% {visibility: visible;}
     }
 
     @keyframes content-internal {

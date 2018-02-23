@@ -2,9 +2,12 @@
     <div class="component-root monospaced">
         <svg :width="size" :height="size" fill="none">
             <path :d="borderDraw" stroke="wheat" :stroke-width="borderWidth" opacity="0.66"></path>
-            <path :d="sweepPath(center, center, r, 0, -((filteredValue - valueMin) / (valueMax - valueMin)) * 225)" fill="wheat" opacity="0.33"></path>
-            <text :x="center * 2" :y="center * 0.95" :style="{'font-size': textSize1}">{{ stringifyValue(value) }}</text>
-            <text :x="center * 2" :y="center * 0.95 - textSize1" :style="{'font-size': textSize2}">{{ labelText }}</text>
+            <path :d="sweepPath(center, center, r, 0, -((filteredValue - valueMin) / (valueMax - valueMin)) * 225)"
+                  fill="wheat" opacity="0.33"></path>
+            <text :x="center * 2" :y="center * 0.95" :style="{'font-size': textSize1}">{{ stringifyValue(value) }}
+            </text>
+            <text :x="center * 2" :y="center * 0.95 - textSize1" :style="{'font-size': textSize2}">{{ labelText }}
+            </text>
         </svg>
     </div>
 </template>
@@ -42,40 +45,40 @@
                 type: String
             }
         },
-        data: function () {
+        data: function() {
             return {
                 maxFixedCount: 0
             };
         },
         computed: {
-            d: function () {
+            d: function() {
                 return this.size - this.borderWidth;
             },
-            r: function () {
+            r: function() {
                 return this.d / 2;
             },
-            center: function () {
+            center: function() {
                 return this.size / 2;
             },
-            halfBorder: function () {
+            halfBorder: function() {
                 return this.borderWidth / 2;
             },
-            halfSqrt2R: function () {
+            halfSqrt2R: function() {
                 return Math.sqrt(2) * this.r / 2;
             },
-            borderDraw: function () {
+            borderDraw: function() {
                 return [
                     "M", this.d + this.borderWidth / 2, this.center,
                     "A", this.r, this.r, 0, 1, 1, this.center - this.halfSqrt2R, this.center - this.halfSqrt2R
                 ].join(" ");
             },
-            textSize1: function () {
+            textSize1: function() {
                 return (this.size / 3 - 5) / (this.stringifyValue(this.value).length / 3);
             },
-            textSize2: function () {
+            textSize2: function() {
                 return Math.min((this.size / 7 - 5) / (this.labelText.toString().length / 7), 12000);
             },
-            filteredValue: function () {
+            filteredValue: function() {
                 if (this.value - this.valueMin > (this.valueMax - this.valueMin) / 225 * 360) {
                     // This formula was done by simple math.
                     return (-359.999 / 225 * (this.valueMax - this.valueMin)) + this.valueMin;
@@ -87,9 +90,9 @@
             }
         },
         methods: {
-            arcPath: function (centerX, centerY, r, start, duration) {
+            arcPath: function(centerX, centerY, r, start, duration) {
                 // This function will throw back a string in path syntax for using. All angle unit are Degree.
-                function polarToRect (centerX, centerY, r, angleInDegrees) {
+                function polarToRect(centerX, centerY, r, angleInDegrees) {
                     // angleInDegrees starts at the top of circle
                     let angleInRadians = angleInDegrees * Math.PI / 180.0;
 
@@ -109,14 +112,14 @@
                     "A", r, r, 0, rotation, duration > 0 ? 0 : 1, endPos.x, endPos.y
                 ].join(" ");
             },
-            sweepPath: function (centerX, centerY, r, start, duration) {
+            sweepPath: function(centerX, centerY, r, start, duration) {
                 return [
                     "M", centerX, centerY,
                     this.arcPath(centerX, centerY, r, start, duration),
                     "L", centerX, centerY
                 ].join(" ");
             },
-            stringifyValue: function (value) {
+            stringifyValue: function(value) {
                 let valueString = value.toString();
                 let sign = value >= 0 ? "" : "-";
                 let intPart = Math.abs(value).toString().split(".")[0];
@@ -146,7 +149,7 @@
                     ].join("");
                 }
             },
-            padZero: function (source, counts) {
+            padZero: function(source, counts) {
                 // A simple and easy to understand pad zero function.
                 while (source.length < counts) {
                     source += "0";
@@ -163,7 +166,7 @@
     @theme-color-main-fade-2: rgba(245, 222, 179, 0.33);
     @theme-color-main-fade-3: rgba(245, 222, 179, 0.1);
 
-    text{
+    text {
         fill: @theme-color-main;
         font-size: 16px;
         alignment-baseline: baseline;

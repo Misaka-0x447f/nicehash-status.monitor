@@ -17,20 +17,20 @@ import request from "superagent";
 const port = 3000;
 
 export default class Nicehash {
-    constructor () {
+    constructor() {
         this.pendingRequest = {};
         this.lastSentRequestAt = 0;
     }
 
-    setAddress (address) {
+    setAddress(address) {
         this.address = address;
     }
 
-    getProvider (callbackSuccess, callbackFailed) {
+    getProvider(callbackSuccess, callbackFailed) {
         this.httpRequest("stats.provider", {addr: this.address}, callbackSuccess, callbackFailed);
     }
 
-    isValidAddress (address, callbackSuccess, callbackFailed) {
+    isValidAddress(address, callbackSuccess, callbackFailed) {
         /**
          * This method will callback with a boolean which indicates if it is a valid address.
          */
@@ -44,21 +44,21 @@ export default class Nicehash {
             }, callbackFailed);
     }
 
-    getProviderEx (callbackSuccess, callbackFailed) {
+    getProviderEx(callbackSuccess, callbackFailed) {
         this.httpRequest("stats.provider.ex", {
             addr: this.address,
             from: Nicehash.getUnixTimeStamp(3 * 86400)
         }, callbackSuccess, callbackFailed, 15);
     }
 
-    getProviderWorkers (callbackSuccess, callbackFailed) {
+    getProviderWorkers(callbackSuccess, callbackFailed) {
         this.httpRequest("stats.provider.ex", {
             addr: this.address,
             from: Nicehash.getUnixTimeStamp(3 * 86400)
         }, callbackSuccess, callbackFailed);
     }
 
-    httpRequest (method, paramArray, callbackSuccess, callbackFailed, throttle = 3) {
+    httpRequest(method, paramArray, callbackSuccess, callbackFailed, throttle = 3) {
         if (Nicehash.getUnixTimeStamp() - this.lastSentRequestAt < throttle) {
             callbackFailed({internalError: "Request too frequently. Your request will be queued unless more request in before limiter released."});
 
@@ -99,15 +99,15 @@ export default class Nicehash {
         request
             .get(uri)
             .query(paramArray)
-            .then(function (response) {
+            .then(function(response) {
                 callbackSuccess(response["body"]);
             })
-            .catch(function (error) {
+            .catch(function(error) {
                 callbackFailed(error);
             });
     }
 
-    static getUnixTimeStamp (offset = 0) {
+    static getUnixTimeStamp(offset = 0) {
         return Math.round((new Date()).getTime() / 1000 - offset);
     }
 }

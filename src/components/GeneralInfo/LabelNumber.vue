@@ -26,13 +26,13 @@
                 type: String
             }
         },
-        data: function () {
+        data: function() {
             return {
                 maxFixedCount: 0
             };
         },
         methods: {
-            stringifyValue: function (value) {
+            stringifyValue: function(value) {
                 let digit = value.toString().split(".");
                 let integer = digit[0];
                 let fixed = "";
@@ -48,7 +48,7 @@
                     this.padZero(fixed, this.maxFixedCount)
                 ];
             },
-            padZero: function (source, counts) {
+            padZero: function(source, counts) {
                 // A simple and easy to understand pad zero function.
                 while (source.length < counts) {
                     source += "0";
@@ -64,15 +64,16 @@
     @theme-color-main-fade: rgba(245, 222, 179, 0.67);
     @theme-color-main-fade-2: rgba(245, 222, 179, 0.33);
 
-    .component-root{
+    .component-root {
         display: block;
         min-width: 10em;
     }
-    .digital{
+
+    .digital {
         font-size: 3em;
         line-height: 0.9;
         text-align: right;
-        .small{
+        .small {
             font-size: 0.5em;
         }
     }

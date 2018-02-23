@@ -29,6 +29,7 @@ module.exports = {
         "indent": ["off"],
         "semi": ["error", "always"],
         "no-trailing-spaces": ["warn", {"skipBlankLines": true, "ignoreComments": true}],
+        "space-before-function-paren": ["error", "never"],
         // managed by webstorm
         "no-unused-vars": ["off"]
     }

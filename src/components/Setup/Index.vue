@@ -23,7 +23,7 @@
             PopUpInput
         },
         name: "setup-index",
-        data () {
+        data() {
             return {
                 dialog: {
                     /* "**" is special here. the component will parse it as a important word. html should be filtered. */
@@ -53,7 +53,7 @@
             };
         },
         methods: {
-            onUserInput: function (input) {
+            onUserInput: function(input) {
                 if (
                     (input.length === 34 && input.slice(0, 1) === "1") ||
                     (input.length === 34 && input.slice(0, 1) === "3") ||
@@ -77,7 +77,7 @@
                     this.dialog.isValid = "false";
                 }
             },
-            onUserSetupAddress: function (input) {
+            onUserSetupAddress: function(input) {
                 Cookies.set("address", input);
             }
         }

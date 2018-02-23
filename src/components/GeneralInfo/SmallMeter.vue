@@ -1,9 +1,9 @@
 <template>
-    <div class="component-root">
+    <div class="component-root monospaced">
         <svg :width="size" :height="size" fill="none">
             <path :d="borderDraw" stroke="wheat" :stroke-width="borderWidth" opacity="0.66"></path>
-            <path :d="sweepPath(center, center, r, 0, -(value / valueMax) * 225)" fill="wheat" opacity="0.33"></path>
-            <text :x="center * 2" :y="center * 0.95" :style="{'font-size': textSize1}">{{ value }}</text>
+            <path :d="sweepPath(center, center, r, 0, -((filteredValue - valueMin) / (valueMax - valueMin)) * 225)" fill="wheat" opacity="0.33"></path>
+            <text :x="center * 2" :y="center * 0.95" :style="{'font-size': textSize1}">{{ stringifyValue(value) }}</text>
             <text :x="center * 2" :y="center * 0.95 - textSize1" :style="{'font-size': textSize2}">{{ labelText }}</text>
         </svg>
     </div>
@@ -29,6 +29,10 @@
                 default: 1.9,
                 type: Number
             },
+            valueMin: {
+                default: 0,
+                type: Number
+            },
             valueDigit: {
                 default: true,
                 type: Boolean
@@ -39,10 +43,8 @@
             }
         },
         data: function () {
-            let rawTextSize2 = (this.size / 7 - 5) / (this.labelText.toString().length / 7);
             return {
-                textSize1: (this.size / 3 - 5) / (this.value.toString().length / 3),
-                textSize2: Math.min(rawTextSize2, 12000)
+                maxFixedCount: 0
             };
         },
         computed: {
@@ -66,6 +68,22 @@
                     "M", this.d + this.borderWidth / 2, this.center,
                     "A", this.r, this.r, 0, 1, 1, this.center - this.halfSqrt2R, this.center - this.halfSqrt2R
                 ].join(" ");
+            },
+            textSize1: function () {
+                return (this.size / 3 - 5) / (this.stringifyValue(this.value).length / 3);
+            },
+            textSize2: function () {
+                return Math.min((this.size / 7 - 5) / (this.labelText.toString().length / 7), 12000);
+            },
+            filteredValue: function () {
+                if (this.value - this.valueMin > (this.valueMax - this.valueMin) / 225 * 360) {
+                    // This formula was done by simple math.
+                    return (-359.999 / 225 * (this.valueMax - this.valueMin)) + this.valueMin;
+                }
+                if (this.value < this.valueMin) {
+                    return this.valueMin;
+                }
+                return this.value;
             }
         },
         methods: {
@@ -97,6 +115,43 @@
                     this.arcPath(centerX, centerY, r, start, duration),
                     "L", centerX, centerY
                 ].join(" ");
+            },
+            stringifyValue: function (value) {
+                let valueString = value.toString();
+                let sign = value >= 0 ? "" : "-";
+                let intPart = Math.abs(value).toString().split(".")[0];
+                let fixedPart = "";
+
+                intPart = intPart === "0" ? "" : intPart;
+
+                if (valueString.split(".").length > 1) {
+                    fixedPart = valueString.split(".")[1];
+                }
+                if (fixedPart.toString().length > this.maxFixedCount) {
+                    this.maxFixedCount = fixedPart.toString().length;
+                }
+                fixedPart = this.padZero(fixedPart, this.maxFixedCount);
+
+                if (fixedPart.length > 0) {
+                    return [
+                        sign,
+                        intPart,
+                        ".",
+                        fixedPart
+                    ].join("");
+                } else {
+                    return [
+                        sign,
+                        intPart
+                    ].join("");
+                }
+            },
+            padZero: function (source, counts) {
+                // A simple and easy to understand pad zero function.
+                while (source.length < counts) {
+                    source += "0";
+                }
+                return source;
             }
         }
     };

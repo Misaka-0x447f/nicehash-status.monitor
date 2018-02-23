@@ -25,10 +25,10 @@
             <circle class="paint1" :cx="center" :cy="center" :r="r + borderWidth / 2" mask="url(#mask1)" style="opacity: 0.8"/>
             <circle class="paint1" :cx="center" :cy="center" :r="r + borderWidth / 2" mask="url(#mask2)" style="opacity: 0.15"/>
 
-            <text v-if="valueDigit" class="paint1" id="value1" :x="center" :y="center" :style="{'font-size': (size / 24 + 50) / (value.toString().length / 2)}">
-                {{ value }}
+            <text v-if="valueDigit" class="paint1 monospaced" id="value1" :x="center" :y="center" :style="{'font-size': valueFontSize}">
+                {{ stringifyValue(value) }}
             </text>
-            <text class="paint1" id="label1" :x="center" :y="center + halfSqrt2R">
+            <text class="paint1" id="label1 monospaced" :x="center" :y="center + halfSqrt2R">
                 {{ labelText }}
             </text>
         </svg>
@@ -48,11 +48,15 @@
                 type: Number
             },
             value: {
-                default: 75,
+                default: 25,
                 type: Number
             },
             valueMax: {
                 default: 100,
+                type: Number
+            },
+            valueMin: {
+                default: 0,
                 type: Number
             },
             valueDigit: {
@@ -85,15 +89,27 @@
             },
             halfSqrt2R: function () {
                 return Math.sqrt(2) * this.r / 2;
+            },
+            progressMask: function () {
+                return this.sweepPath(this.center, this.center, this.center + 1, -45, 270 * (1 - (this.filteredValue - this.valueMin) / (this.valueMax - this.valueMin)));
+            },
+            valueFontSize: function () {
+                return (this.size / 24 + 50) / (this.stringifyValue(this.value).length / 2);
+            },
+            filteredValue: function () {
+                if (this.value > this.valueMax) {
+                    return this.valueMax;
+                }
+                if (this.value < this.valueMin) {
+                    return this.valueMin;
+                }
+                return this.value;
             }
         },
         data: function () {
             return {
-                progressMask: ""
+                maxFixedCount: 0
             };
-        },
-        mounted: function () {
-            this.progressMask = this.sweepPath(this.center, this.center, this.center + 1, -45, 270 * (1 - this.value / this.valueMax));
         },
         methods: {
             arcPath: function (centerX, centerY, r, start, duration) {
@@ -124,6 +140,34 @@
                     this.arcPath(centerX, centerY, r, start, duration),
                     "L", centerX, centerY
                 ].join(" ");
+            },
+            stringifyValue: function (value) {
+                let digit = value.toString().split(".");
+                let integer = digit[0];
+                let fixed = "";
+                if (digit.length > 1) {
+                    fixed = digit[1];
+                }
+                if (fixed.length > this.maxFixedCount) {
+                    this.maxFixedCount = fixed.length;
+                }
+
+                if (this.maxFixedCount > 0) {
+                    return [
+                        integer,
+                        ".",
+                        this.padZero(fixed, this.maxFixedCount)
+                    ].join("");
+                } else {
+                    return integer;
+                }
+            },
+            padZero: function (source, counts) {
+                // A simple and easy to understand pad zero function.
+                while (source.length < counts) {
+                    source += "0";
+                }
+                return source;
             }
         }
     };

@@ -71,4 +71,9 @@
         z-index: -2147483647;
         filter: saturate(50%) brightness(66%);
     }
+
+    .monospaced{
+        font-family: "Source Code Pro", "Consolas", monospace;
+        font-weight: 100;
+    }
 </style>

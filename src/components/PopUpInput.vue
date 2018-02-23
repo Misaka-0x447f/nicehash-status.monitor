@@ -346,8 +346,4 @@
         45% {flex: 0}
         100% {flex: 20000}
     }
-
-    .monospaced{
-        font-family: "Source Code Pro", "Consolas", monospace;
-    }
 </style>

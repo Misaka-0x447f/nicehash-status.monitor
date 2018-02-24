@@ -14,7 +14,7 @@
 
 import request from "superagent";
 
-const port = 3000;
+const port = 17535;
 
 export default class Nicehash {
     constructor() {
@@ -47,8 +47,8 @@ export default class Nicehash {
     getProviderEx(callbackSuccess, callbackFailed) {
         this.httpRequest("stats.provider.ex", {
             addr: this.address,
-            from: Nicehash.getUnixTimeStamp(3 * 86400)
-        }, callbackSuccess, callbackFailed, 15);
+            from: Nicehash.getUnixTimeStamp(7 * 86400)
+        }, callbackSuccess, callbackFailed, 30);
     }
 
     getProviderWorkers(callbackSuccess, callbackFailed) {

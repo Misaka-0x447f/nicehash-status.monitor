@@ -25,16 +25,13 @@
                 type: Number
             },
             value: {
-                default: 0.73,
-                type: Number
+                default: 0.73
             },
             valueMax: {
-                default: 1.9,
-                type: Number
+                default: 1.9
             },
             valueMin: {
-                default: 0,
-                type: Number
+                default: 0
             },
             valueDigit: {
                 default: true,
@@ -79,6 +76,9 @@
                 return Math.min((this.size / 7 - 5) / (this.labelText.toString().length / 7), 12000);
             },
             filteredValue: function() {
+                if (typeof (this.value) !== "number") {
+                    return this.valueMin;
+                }
                 if (this.value - this.valueMin > (this.valueMax - this.valueMin) / 225 * 360) {
                     // This formula was done by simple math.
                     return (-359.999 / 225 * (this.valueMax - this.valueMin)) + this.valueMin;
@@ -120,33 +120,37 @@
                 ].join(" ");
             },
             stringifyValue: function(value) {
-                let valueString = value.toString();
-                let sign = value >= 0 ? "" : "-";
-                let intPart = Math.abs(value).toString().split(".")[0];
-                let fixedPart = "";
+                if (typeof (value) === "number") {
+                    let valueString = value.toString();
+                    let sign = value >= 0 ? "" : "-";
+                    let intPart = Math.abs(value).toString().split(".")[0];
+                    let fixedPart = "";
 
-                intPart = intPart === "0" ? "" : intPart;
+                    intPart = intPart === "0" ? "" : intPart;
 
-                if (valueString.split(".").length > 1) {
-                    fixedPart = valueString.split(".")[1];
-                }
-                if (fixedPart.toString().length > this.maxFixedCount) {
-                    this.maxFixedCount = fixedPart.toString().length;
-                }
-                fixedPart = this.padZero(fixedPart, this.maxFixedCount);
+                    if (valueString.split(".").length > 1) {
+                        fixedPart = valueString.split(".")[1];
+                    }
+                    if (fixedPart.toString().length > this.maxFixedCount) {
+                        this.maxFixedCount = fixedPart.toString().length;
+                    }
+                    fixedPart = this.padZero(fixedPart, this.maxFixedCount);
 
-                if (fixedPart.length > 0) {
-                    return [
-                        sign,
-                        intPart,
-                        ".",
-                        fixedPart
-                    ].join("");
+                    if (fixedPart.length > 0) {
+                        return [
+                            sign,
+                            intPart,
+                            ".",
+                            fixedPart
+                        ].join("");
+                    } else {
+                        return [
+                            sign,
+                            intPart
+                        ].join("");
+                    }
                 } else {
-                    return [
-                        sign,
-                        intPart
-                    ].join("");
+                    return value;
                 }
             },
             padZero: function(source, counts) {

@@ -51,16 +51,13 @@
                 type: Number
             },
             value: {
-                default: 25,
-                type: Number
+                default: 25
             },
             valueMax: {
-                default: 100,
-                type: Number
+                default: 100
             },
             valueMin: {
-                default: 0,
-                type: Number
+                default: 0
             },
             valueDigit: {
                 default: false,
@@ -100,6 +97,9 @@
                 return (this.size / 24 + 50) / (this.stringifyValue(this.value).length / 2);
             },
             filteredValue: function() {
+                if (typeof (this.value) !== "number") {
+                    return this.valueMin;
+                }
                 if (this.value > this.valueMax) {
                     return this.valueMax;
                 }
@@ -145,24 +145,28 @@
                 ].join(" ");
             },
             stringifyValue: function(value) {
-                let digit = value.toString().split(".");
-                let integer = digit[0];
-                let fixed = "";
-                if (digit.length > 1) {
-                    fixed = digit[1];
-                }
-                if (fixed.length > this.maxFixedCount) {
-                    this.maxFixedCount = fixed.length;
-                }
+                if (typeof (value) === "number") {
+                    let digit = value.toString().split(".");
+                    let integer = digit[0];
+                    let fixed = "";
+                    if (digit.length > 1) {
+                        fixed = digit[1];
+                    }
+                    if (fixed.length > this.maxFixedCount) {
+                        this.maxFixedCount = fixed.length;
+                    }
 
-                if (this.maxFixedCount > 0) {
-                    return [
-                        integer,
-                        ".",
-                        this.padZero(fixed, this.maxFixedCount)
-                    ].join("");
+                    if (this.maxFixedCount > 0) {
+                        return [
+                            integer,
+                            ".",
+                            this.padZero(fixed, this.maxFixedCount)
+                        ].join("");
+                    } else {
+                        return integer;
+                    }
                 } else {
-                    return integer;
+                    return value;
                 }
             },
             padZero: function(source, counts) {

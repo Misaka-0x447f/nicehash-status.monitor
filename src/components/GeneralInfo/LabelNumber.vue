@@ -1,10 +1,12 @@
 <template>
     <div class="component-root">
-        <div class="digital monospaced">
-            {{stringifyValue(value)[0]}}<span class="small">{{stringifyValue(value)[1]}}</span>
-        </div>
-        <div class="label monospaced">
-            {{label}}
+        <div :width="width + 'px'">
+            <div class="digital monospaced">
+                {{stringifyValue(value)[0]}}<span class="small">{{stringifyValue(value)[1]}}</span>
+            </div>
+            <div class="label monospaced">
+                {{label}}
+            </div>
         </div>
     </div>
 </template>
@@ -13,9 +15,12 @@
     export default {
         name: "label-number",
         props: {
+            width: {
+                default: 400,
+                type: Number
+            },
             value: {
-                default: "True",
-                type: String
+                default: "True"
             },
             label: {
                 default: "Lorem ipsum",
@@ -76,5 +81,9 @@
         .small {
             font-size: 0.5em;
         }
+    }
+
+    .label{
+        font-size: 0.8em;
     }
 </style>

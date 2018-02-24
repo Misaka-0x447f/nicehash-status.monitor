@@ -50,7 +50,8 @@
 </template>
 
 <script>
-    // import nicehash from "../../library/nicehash";
+    import Nicehash from "../../library/nicehash";
+    import * as Cookies from "es-cookie";
 
     import SharpMeter from "./SharpMeter";
     import SmallMeter from "./SmallMeter";
@@ -70,91 +71,140 @@
         },
         name: "panel",
         data: function() {
-            let currentProf = "----";
-            let currentProfMax = 125;
-            let averageProf = "----";
-            let unpaidBalance = "----";
-            let totalBalance = "----";
-            let bitcoinPrice = "----";
-            let activeWorker = "--";
-            let profDiff = "----";
-            let weeklyUptime = "----";
-
             return {
+                nicehash: new Nicehash(),
                 panelSizePx: this.panelSize + "px",
-                currentProfIndicator: {
+                currentProf: "----",
+                currentProfMax: "----",
+                averageProf: "----",
+                unpaidBalance: "----",
+                totalBalance: "----",
+                bitcoinPrice: "----",
+                activeWorker: "----",
+                profDiff: "----",
+                weeklyUptime: "----"
+            };
+        },
+        computed: {
+            currentProfIndicator: function() {
+                return {
                     width: this.panelSize / 2,
-                    value: currentProf,
+                    value: this.currentProf,
                     label: "CNY/d currentProf"
-                },
-                currentProfMeter: {
+                };
+            },
+            currentProfMeter: function() {
+                return {
                     size: this.panelSize,
-                    value: currentProf,
+                    value: this.currentProf,
                     valueMin: 0,
-                    valueMax: currentProfMax
-                },
-                averageProfIndicator: {
+                    valueMax: this.currentProfMax
+                };
+            },
+            averageProfIndicator: function() {
+                return {
                     width: this.panelSize / 2,
-                    value: averageProf,
+                    value: this.averageProf,
                     label: "CNY/mo averageProf"
-                },
-                unpaidBalanceIndicator: {
+                };
+            },
+            unpaidBalanceIndicator: function() {
+                return {
                     width: this.panelSize / 2,
-                    value: unpaidBalance,
+                    value: this.unpaidBalance,
                     label: "CNY unpaidBalance"
-                },
-                totalBalanceIndicator: {
+                };
+            },
+            totalBalanceIndicator: function() {
+                return {
                     width: this.panelSize / 2,
-                    value: totalBalance,
+                    value: this.totalBalance,
                     label: "CNY totalBalance"
-                },
-                bitcoinPriceIndicator: {
+                };
+            },
+            bitcoinPriceIndicator: function() {
+                return {
                     width: this.panelSize / 2,
-                    value: bitcoinPrice,
+                    value: this.bitcoinPrice,
                     label: "USD bitcoinPrice"
-                },
-                activeWorkerIndicator: {
+                };
+            },
+            activeWorkerIndicator: function() {
+                return {
                     width: this.panelSize / 2,
-                    value: activeWorker,
+                    value: this.activeWorker,
                     label: "ActiveWorker"
-                },
-                profDiffIndicator: {
+                };
+            },
+            profDiffIndicator: function() {
+                return {
                     size: this.panelSize / 3,
-                    value: profDiff,
+                    value: this.profDiff,
                     valueMin: -10,
                     valueMax: 10,
                     labelText: "profDiff%"
-                },
-                weeklyUptimeIndicator: {
+                };
+            },
+            weeklyUptimeIndicator: function() {
+                return {
                     size: this.panelSize / 3,
-                    value: weeklyUptime,
+                    value: this.weeklyUptime,
                     valueMin: 95,
                     valueMax: 100,
                     labelText: "wklyUp%"
-                }
-            };
+                };
+            }
         },
         mounted: function() {
-            // setInterval(this.runAsyncQuery());
-            let panel = this.$el.querySelectorAll(".panel");
-            for (let i of panel) {
-                i.style.width = this.panelSize * 3.6 + "px";
-            }
-            let panelInside = this.$el.querySelectorAll(".panel > *");
-            for (let i of panelInside) {
-                i.style.flexBasis = this.panelSize * 1.1 + "px";
-            }
-            let insideSubPanel = this.$el.querySelectorAll(".inside-sub-panel");
-            for (let i of insideSubPanel) {
-                i.style.minHeight = this.panelSizePx;
-                i.style.flexBasis = this.panelSize * 1.1 + "px";
-            }
-            let line = this.$el.querySelectorAll(".line");
-            for (let i of line) {
-                i.style.flexBasis = this.panelSize * 1.1 + "px";
-            }
+            this.checkCookie();
+            this.setStyle();
+            this.runAsyncQuery();
+            setInterval(this.runAsyncQuery(), 300000);
         },
         methods: {
+            checkCookie: function() {
+                let addr = Cookies.get("address");
+                if (
+                    typeof (addr) === "string" && addr.hasOwnProperty("length") &&
+                    (
+                        (addr.length === 34 && addr.slice(0, 1) === "1") ||
+                        (addr.length === 34 && addr.slice(0, 1) === "3") ||
+                        (addr.length === 42 && addr.slice(0, 3) === "bc1")
+                    )
+                ) {
+                    this.nicehash.isValidAddress(addr,
+                        (response) => {
+                            if (response !== "true") {
+                                this.$router.push("/setup");
+                            }
+                        },
+                        () => {
+                            this.checkCookie();
+                        }
+                    );
+                } else {
+                    this.$router.push("/setup");
+                }
+            },
+            setStyle: function() {
+                let panel = this.$el.querySelectorAll(".panel");
+                for (let i of panel) {
+                    i.style.width = this.panelSize * 3.6 + "px";
+                }
+                let panelInside = this.$el.querySelectorAll(".panel > *");
+                for (let i of panelInside) {
+                    i.style.flexBasis = this.panelSize * 1.1 + "px";
+                }
+                let insideSubPanel = this.$el.querySelectorAll(".inside-sub-panel");
+                for (let i of insideSubPanel) {
+                    i.style.minHeight = this.panelSizePx;
+                    i.style.flexBasis = this.panelSize * 1.1 + "px";
+                }
+                let line = this.$el.querySelectorAll(".line");
+                for (let i of line) {
+                    i.style.flexBasis = this.panelSize * 1.1 + "px";
+                }
+            },
             runAsyncQuery: function() {
 
             }

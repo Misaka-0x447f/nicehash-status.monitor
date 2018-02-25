@@ -113,6 +113,14 @@
                 ].join(" ");
             },
             sweepPath: function(centerX, centerY, r, start, duration) {
+                function isNumeric(n) {
+                    return !isNaN(parseFloat(n)) && isFinite(n);
+                }
+                for (let i of [centerX, centerY, r, start, duration]) {
+                    if (!isNumeric(i)) {
+                        return "";
+                    }
+                }
                 return [
                     "M", centerX, centerY,
                     this.arcPath(centerX, centerY, r, start, duration),

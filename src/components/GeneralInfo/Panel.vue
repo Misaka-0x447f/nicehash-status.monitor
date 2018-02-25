@@ -32,7 +32,7 @@
                             v-bind="profDiffIndicator"
                         ></small-meter>
                         <small-meter
-                            v-bind="weeklyUptimeIndicator"
+                            v-bind="dailyUptimeIndicator"
                         ></small-meter>
                     </div>
                 </div>
@@ -78,11 +78,12 @@
                 currentProfMax: "----",
                 averageProf: "----",
                 unpaidBalance: "----",
-                totalBalance: "----",
+                totalBalance: "×",
                 bitcoinPrice: "----",
+                bitcoinPriceCNY: "----",
                 activeWorker: "----",
                 profDiff: "----",
-                weeklyUptime: "----"
+                dailyUptime: "----"
             };
         },
         computed: {
@@ -145,21 +146,21 @@
                     labelText: "profDiff%"
                 };
             },
-            weeklyUptimeIndicator: function() {
+            dailyUptimeIndicator: function() {
                 return {
                     size: this.panelSize / 3,
-                    value: this.weeklyUptime,
+                    value: this.dailyUptime,
                     valueMin: 95,
                     valueMax: 100,
-                    labelText: "wklyUp%"
+                    labelText: "dUptime%"
                 };
             }
         },
         mounted: function() {
+            this.nicehash.queueMode();
             this.checkCookie();
             this.setStyle();
-            this.runAsyncQuery();
-            setInterval(this.runAsyncQuery(), 300000);
+            // continues after check cookie.
         },
         methods: {
             checkCookie: function() {
@@ -176,6 +177,10 @@
                         (response) => {
                             if (response !== "true") {
                                 this.$router.push("/setup");
+                            } else {
+                                this.nicehash.setAddress(Cookies.get("address"));
+                                this.runAsyncQuery();
+                                setInterval(this.runAsyncQuery, 120000);
                             }
                         },
                         () => {
@@ -206,7 +211,161 @@
                 }
             },
             runAsyncQuery: function() {
+                priceBTCCNY(this);
+                priceBTC(this);
+                getProviderWorker(this);
 
+                function priceBTCCNY(self) {
+                    Nicehash.logger("@", "getBitcoinPrice");
+                    self.nicehash.getPriceBitcoin(
+                        (response) => {
+                            self.bitcoinPriceCNY = response["result"]["data"]["amount"];
+                            getProvider(self);
+                            getProviderEx(self);
+                        },
+                        () => {
+                            priceBTCCNY(self);
+                        },
+                        "CNY"
+                    );
+                }
+
+                function priceBTC(self) {
+                    Nicehash.logger("@", "getBitcoinPrice");
+                    self.nicehash.getPriceBitcoin(
+                        (response) => {
+                            self.bitcoinPrice = parseInt(response["result"]["data"]["amount"]);
+                        },
+                        () => {
+                            priceBTC(self);
+                        }
+                    );
+                }
+
+                function getProvider(self) {
+                    Nicehash.logger("@", "getProvider");
+                    self.nicehash.getProvider(
+                        (response) => {
+                            let stats = response.result.stats;
+                            let unpaidBalanceTotal = 0;
+                            for (let i of stats) {
+                                unpaidBalanceTotal += parseFloat(i["balance"]);
+                            }
+                            self.unpaidBalance = (unpaidBalanceTotal * self.bitcoinPriceCNY).toFixed(2);
+                        },
+                        () => {
+                            getProvider(self);
+                        }
+                    );
+                }
+
+                function getProviderEx(self) {
+                    Nicehash.logger("@", "getProviderEx");
+                    self.nicehash.getProviderEx(
+                        (response) => {
+                            getProviderExProcessor(response, self);
+                        },
+                        () => {
+                            getProviderEx(self);
+                        }
+                    );
+                }
+                function getProviderExProcessor(response, self) {
+                    Nicehash.logger("@", "getProviderExProcessor");
+                    let currentStatus = response.result["current"];
+                    let currentProf = 0;
+                    let algoLib = []; // will be useful on past data calc.
+                    for (let i of currentStatus) {
+                        algoLib[i["algo"]] = {"profitability": i["profitability"]};
+                        let currentAlgoSpeedSum = 0;
+                        for (let j of i.data) {
+                            if (j.hasOwnProperty("a")) {
+                                currentAlgoSpeedSum += j.a;
+                            }
+                        }
+                        currentProf += currentAlgoSpeedSum * i["profitability"];
+                    }
+                    self.currentProf = (currentProf * self.bitcoinPriceCNY).toFixed(2);
+
+                    /*************************************/
+
+                    let bitcoinPriceCNY = self.bitcoinPriceCNY;
+
+                    let pastProf1 = [];
+                    for (let i = Nicehash.getUnixTimeStamp(); i > Nicehash.getUnixTimeStamp(86400); i -= 300) {
+                        pastProf1.push(getPastProfitability(response, i) * bitcoinPriceCNY);
+                    }
+                    let pastProf2 = [];
+                    for (let i = Nicehash.getUnixTimeStamp(86400); i > Nicehash.getUnixTimeStamp(86400 * 2); i -= 300) {
+                        pastProf2.push(getPastProfitability(response, i) * bitcoinPriceCNY);
+                    }
+
+                    let sum1 = 0;
+                    let count1 = 0;
+                    for (let i of pastProf1) {
+                        sum1 += i;
+                        count1++;
+                    }
+
+                    let sum2 = 0;
+                    let count2 = 0;
+                    for (let i of pastProf2) {
+                        sum2 += i;
+                        count2++;
+                    }
+
+                    self.averageProf = (sum1 / count1 * 30).toFixed(2);
+                    self.profDiff = (((sum1 / count1) / (sum2 / count2) - 1) * 100).toFixed(1);
+                }
+
+                function getPastProfitability(source, unixTimeStamp) {
+                    // unit: bitcoin
+                    let algoLib = [];
+                    let current = source.result["current"];
+                    for (let i of current) {
+                        algoLib[i["algo"]] = {"profitability": i["profitability"]};
+                    }
+
+                    let past = source.result["past"];
+                    let prof = 0;
+                    for (let i of past) {
+                        // single algo
+                        let foundFlag = false;
+                        for (let j of i.data) {
+                            // single timestamp
+                            if (j[0] === Math.floor(unixTimeStamp / 300)) {
+                                foundFlag = true;
+                                if (j[1].hasOwnProperty(["a"])) {
+                                    prof += algoLib[i["algo"]]["profitability"] * parseFloat(j[1]["a"]);
+                                }
+                                break;
+                            }
+                        }
+                        if (foundFlag === false) {
+                            return false;
+                        }
+                    }
+                    return prof;
+                }
+
+                function getProviderWorker(self) {
+                    Nicehash.logger("@", "getProviderWorker");
+                    self.nicehash.getProviderWorkers(
+                        (response) => {
+                            let workers = response.result.workers;
+                            let workerSet = [];
+                            for (let i of workers) {
+                                if (workerSet.indexOf(i[0]) === -1) {
+                                    workerSet = workerSet.concat([i[0]]);
+                                }
+                            }
+                            self.activeWorker = workerSet.length;
+                        },
+                        () => {
+                            getProviderWorker(self);
+                        }
+                    );
+                }
             }
         }
     };

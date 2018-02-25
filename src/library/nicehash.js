@@ -68,7 +68,7 @@ export default class Nicehash {
     getProviderEx(callbackSuccess, callbackFailed) {
         this.httpRequest("stats.provider.ex", {
             addr: this.address,
-            from: Nicehash.getUnixTimeStamp(86400)
+            from: Nicehash.getUnixTimeStamp(86400 * 3)
         }, callbackSuccess, callbackFailed, this.slowThrottle);
     }
 

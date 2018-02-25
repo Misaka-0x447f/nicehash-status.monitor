@@ -32,7 +32,7 @@
                             v-bind="profDiffIndicator"
                         ></small-meter>
                         <small-meter
-                            v-bind="dailyUptimeIndicator"
+                            v-bind="efficiencyIndicator"
                         ></small-meter>
                     </div>
                 </div>
@@ -42,7 +42,7 @@
                     v-bind="currentProfMeter"
                 ></sharp-meter>
             </div>
-            <div class="right-panel">
+            <div class="right-panel flex">
 
             </div>
         </div>
@@ -83,7 +83,7 @@
                 bitcoinPriceCNY: "----",
                 activeWorker: "----",
                 profDiff: "----",
-                dailyUptime: "----"
+                efficiency: "----"
             };
         },
         computed: {
@@ -99,7 +99,8 @@
                     size: this.panelSize,
                     value: this.currentProf,
                     valueMin: 0,
-                    valueMax: this.currentProfMax
+                    valueMax: this.currentProfMax,
+                    icon: "cloud"
                 };
             },
             averageProfIndicator: function() {
@@ -141,18 +142,18 @@
                 return {
                     size: this.panelSize / 3,
                     value: this.profDiff,
-                    valueMin: -10,
-                    valueMax: 10,
+                    valueMin: -5,
+                    valueMax: 5,
                     labelText: "profDiff%"
                 };
             },
-            dailyUptimeIndicator: function() {
+            efficiencyIndicator: function() {
                 return {
                     size: this.panelSize / 3,
-                    value: this.dailyUptime,
-                    valueMin: 95,
+                    value: this.efficiency,
+                    valueMin: 96,
                     valueMax: 100,
-                    labelText: "dUptime%"
+                    labelText: "efficiency%"
                 };
             }
         },
@@ -285,20 +286,31 @@
                         }
                         currentProf += currentAlgoSpeedSum * i["profitability"];
                     }
-                    self.currentProf = (currentProf * self.bitcoinPriceCNY).toFixed(2);
+                    self.currentProf = parseFloat((currentProf * self.bitcoinPriceCNY).toFixed(2));
 
                     /*************************************/
 
                     let bitcoinPriceCNY = self.bitcoinPriceCNY;
 
                     let pastProf1 = [];
+                    let pastReje1 = [];
                     for (let i = Nicehash.getUnixTimeStamp(); i > Nicehash.getUnixTimeStamp(86400); i -= 300) {
-                        pastProf1.push(getPastProfitability(response, i) * bitcoinPriceCNY);
+                        let query = getPastProfitability(response, i);
+                        pastProf1.push(query["accepted"] * bitcoinPriceCNY);
+                        pastReje1.push(query["rejected"] * bitcoinPriceCNY);
                     }
                     let pastProf2 = [];
                     for (let i = Nicehash.getUnixTimeStamp(86400); i > Nicehash.getUnixTimeStamp(86400 * 2); i -= 300) {
-                        pastProf2.push(getPastProfitability(response, i) * bitcoinPriceCNY);
+                        pastProf2.push(getPastProfitability(response, i)["accepted"] * bitcoinPriceCNY);
                     }
+
+                    let max = 0;
+                    for (let i of pastProf1) {
+                        if (i > max) {
+                            max = i;
+                        }
+                    }
+                    self.currentProfMax = max;
 
                     let sum1 = 0;
                     let count1 = 0;
@@ -315,7 +327,13 @@
                     }
 
                     self.averageProf = (sum1 / count1 * 30).toFixed(2);
-                    self.profDiff = (((sum1 / count1) / (sum2 / count2) - 1) * 100).toFixed(1);
+                    self.profDiff = parseFloat((((sum1 / count1) / (sum2 / count2) - 1) * 100).toFixed(2));
+
+                    function sum(array) {
+                        return array.reduce((a, b) => { return a + b; }, 0);
+                    }
+
+                    self.efficiency = parseFloat((sum(pastProf1) / (sum(pastProf1) + sum(pastReje1)) * 100).toFixed(2));
                 }
 
                 function getPastProfitability(source, unixTimeStamp) {
@@ -328,6 +346,7 @@
 
                     let past = source.result["past"];
                     let prof = 0;
+                    let reject = 0;
                     for (let i of past) {
                         // single algo
                         let foundFlag = false;
@@ -335,8 +354,16 @@
                             // single timestamp
                             if (j[0] === Math.floor(unixTimeStamp / 300)) {
                                 foundFlag = true;
+                                let value = j[1];
                                 if (j[1].hasOwnProperty(["a"])) {
                                     prof += algoLib[i["algo"]]["profitability"] * parseFloat(j[1]["a"]);
+                                    delete value["a"];
+                                }
+                                value = Object.values(value);
+                                if (Object.keys(value).length > 0) {
+                                    for (let k of value) {
+                                        reject += algoLib[i["algo"]]["profitability"] * parseFloat(k);
+                                    }
                                 }
                                 break;
                             }
@@ -345,7 +372,10 @@
                             return false;
                         }
                     }
-                    return prof;
+                    return {
+                        "accepted": prof,
+                        "rejected": reject
+                    };
                 }
 
                 function getProviderWorker(self) {

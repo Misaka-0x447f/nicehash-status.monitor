@@ -16,6 +16,7 @@
     "less-loader": "^4.0.5",
     "request": "^2.83.0",
     "superagent": "^3.8.2",
+    "superagent-throttle": "^0.2.5",
     "vue": "^2.5.2",
     "vue-router": "^3.0.1"
   },

@@ -76,13 +76,12 @@ const server = http.createServer((req, res) => {
         ]);
     } else if (url.parse(req.url).pathname === "/price.btc") {
         let param = [
-
         ];
         if (typeof (queryData.currency) !== "undefined") {
-            param.concat([{
+            param = [{
                     name: "currency",
                     value: queryData.currency
-            }]);
+            }];
         }
         coinbasePriceRequest(res, "prices/spot", param);
     } else {

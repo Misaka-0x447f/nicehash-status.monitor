@@ -25,11 +25,11 @@ module.exports = {
         'generator-star-spacing': 'off',
         // allow debugger during development
         'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
-        "quotes": ["error", "double"],
+        "quotes": ["warn", "double"],
         "indent": ["off"],
-        "semi": ["error", "always"],
+        "semi": ["warn", "always"],
         "no-trailing-spaces": ["warn", {"skipBlankLines": true, "ignoreComments": true}],
-        "space-before-function-paren": ["error", "never"],
+        "space-before-function-paren": ["warn", "never"],
         // managed by webstorm
         "no-unused-vars": ["off"]
     }

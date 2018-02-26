@@ -43,7 +43,9 @@
                 ></sharp-meter>
             </div>
             <div class="right-panel">
-
+                <worker
+                    v-bind="workerListContainer"
+                ></worker>
             </div>
         </div>
         <console></console>
@@ -58,9 +60,11 @@
     import SmallMeter from "./SmallMeter";
     import LabelNumber from "./LabelNumber";
     import Console from "./Console";
+    import Worker from "./Worker";
 
     export default {
         components: {
+            Worker,
             Console,
             LabelNumber,
             SmallMeter,
@@ -86,7 +90,14 @@
                 bitcoinPriceCNY: "----",
                 activeWorker: "----",
                 profDiff: "----",
-                efficiency: "----"
+                efficiency: "----",
+                workerListContainer: {
+                    workerList: [
+                        {
+                            workerName: "connecting..."
+                        }
+                    ]
+                }
             };
         },
         computed: {
@@ -220,7 +231,6 @@
                 getProviderWorker(this);
 
                 function priceBTCCNY(self) {
-                    Nicehash.logger("@", "getBitcoinPrice");
                     self.nicehash.getPriceBitcoin(
                         (response) => {
                             self.bitcoinPriceCNY = response["result"]["data"]["amount"];
@@ -235,7 +245,6 @@
                 }
 
                 function priceBTC(self) {
-                    Nicehash.logger("@", "getBitcoinPrice");
                     self.nicehash.getPriceBitcoin(
                         (response) => {
                             self.bitcoinPrice = parseInt(response["result"]["data"]["amount"]);
@@ -247,7 +256,6 @@
                 }
 
                 function getProvider(self) {
-                    Nicehash.logger("@", "getProvider");
                     self.nicehash.getProvider(
                         (response) => {
                             let stats = response.result.stats;
@@ -264,7 +272,6 @@
                 }
 
                 function getProviderEx(self) {
-                    Nicehash.logger("@", "getProviderEx");
                     self.nicehash.getProviderEx(
                         (response) => {
                             getProviderExProcessor(response, self);
@@ -274,8 +281,8 @@
                         }
                     );
                 }
+
                 function getProviderExProcessor(response, self) {
-                    Nicehash.logger("@", "getProviderExProcessor");
                     let currentStatus = response.result["current"];
                     let currentProf = 0;
                     let algoLib = []; // will be useful on past data calc.
@@ -333,7 +340,9 @@
                     self.profDiff = parseFloat((((sum1 / count1) / (sum2 / count2) - 1) * 100).toFixed(2));
 
                     function sum(array) {
-                        return array.reduce((a, b) => { return a + b; }, 0);
+                        return array.reduce((a, b) => {
+                            return a + b;
+                        }, 0);
                     }
 
                     self.efficiency = parseFloat((sum(pastProf1) / (sum(pastProf1) + sum(pastReje1)) * 100).toFixed(2));
@@ -382,9 +391,9 @@
                 }
 
                 function getProviderWorker(self) {
-                    Nicehash.logger("@", "getProviderWorker");
                     self.nicehash.getProviderWorkers(
                         (response) => {
+                            // worker count
                             let workers = response.result.workers;
                             let workerSet = [];
                             for (let i of workers) {
@@ -393,6 +402,40 @@
                                 }
                             }
                             self.activeWorker = workerSet.length;
+                            // worker list
+                            workerSet = [];
+                            let algoNames = {
+                                0: "Scrypt", 1: "SHA256", 2: "ScryptNf", 3: "X11", 4: "X13", 5: "Keccak", 6: "X15", 7: "Nist5", 8: "NeoScrypt", 9: "Lyra2RE", 10: "WhirlpoolX", 11: "Qubit", 12: "Quark", 13: "Axiom", 14: "Lyra2REv2", 15: "ScryptJaneNf16", 16: "Blake256r8", 17: "Blake256r14", 18: "Blake256r8vnl", 19: "Hodl", 20: "DaggerHashimoto", 21: "Decred", 22: "CryptoNight", 23: "Lbry", 24: "Equihash", 25: "Pascal", 26: "X11Gost", 27: "Blake2b(Sia)", 28: "Blake2s", 29: "Skunk"
+                            };
+                            let counter = 0;
+                            for (let i of workers) {
+                                let accepted = 0;
+                                let rejected = 0;
+                                let speedObject = i[1];
+                                if (speedObject.hasOwnProperty("a")) {
+                                    accepted = parseFloat(speedObject["a"]);
+                                    delete speedObject["a"];
+                                }
+
+                                for (let j in speedObject) {
+                                    if (speedObject.hasOwnProperty(j)) {
+                                        rejected += parseFloat(speedObject[j]);
+                                    }
+                                }
+                                workerSet = workerSet.concat({
+                                    key: counter,
+                                    workerName: i[0],
+                                    algorithm: algoNames[i[6]],
+                                    accepted: accepted,
+                                    rejected: rejected
+                                });
+                                counter++;
+                            }
+                            workerSet.sort(function(a, b) {
+                                return a.workerName > b.workerName;
+                            });
+                            console.log(workerSet);
+                            self.workerListContainer.workerList = workerSet;
                         },
                         () => {
                             getProviderWorker(self);
@@ -410,5 +453,9 @@
         justify-content: space-around;
         align-content: space-around;
         flex-wrap: wrap;
+    }
+
+    .right-panel {
+        position: relative;
     }
 </style>

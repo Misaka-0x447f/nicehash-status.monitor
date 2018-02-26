@@ -1,6 +1,6 @@
 <template>
     <div class="component-root">
-        <div class="console monospaced" :style="{maxWidth: size + 'px', maxHeight: size + 'px'}">
+        <div class="console monospaced">
             {{log}}
         </div>
     </div>

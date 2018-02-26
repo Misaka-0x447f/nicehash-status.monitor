@@ -23,7 +23,6 @@ const url = require("url");
 const http = require("http");
 const request = require("request");
 
-const hostname = "127.0.0.1";
 const port = 17535;
 
 const server = http.createServer((req, res) => {
@@ -90,9 +89,7 @@ const server = http.createServer((req, res) => {
     }
 });
 
-server.listen(port, hostname, () => {
-    console.log(`Server running at http://${hostname}:${port}/`);
-});
+server.listen(port);
 
 function nicehashRequest(hostRes, method, para = undefined) {
     let address = "https://api.nicehash.com/api?method=" + method;

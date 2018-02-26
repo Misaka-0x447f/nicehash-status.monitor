@@ -42,10 +42,11 @@
                     v-bind="currentProfMeter"
                 ></sharp-meter>
             </div>
-            <div class="right-panel flex">
+            <div class="right-panel">
 
             </div>
         </div>
+        <console></console>
     </div>
 </template>
 
@@ -56,9 +57,11 @@
     import SharpMeter from "./SharpMeter";
     import SmallMeter from "./SmallMeter";
     import LabelNumber from "./LabelNumber";
+    import Console from "./Console";
 
     export default {
         components: {
+            Console,
             LabelNumber,
             SmallMeter,
             SharpMeter
@@ -181,7 +184,7 @@
                             } else {
                                 this.nicehash.setAddress(Cookies.get("address"));
                                 this.runAsyncQuery();
-                                setInterval(this.runAsyncQuery, 120000);
+                                setInterval(this.runAsyncQuery, 60000);
                             }
                         },
                         () => {

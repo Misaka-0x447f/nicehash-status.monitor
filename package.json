@@ -8,7 +8,8 @@
     "dev": "webpack-dev-server --inline --progress --config build/webpack.dev.conf.js",
     "start": "npm run dev",
     "lint": "eslint --ext .js,.vue src",
-    "build": "node build/build.js"
+    "build": "node build/build.js && cp server/server.js dist_server/server.js",
+    "build_windows": "node build/build.js && copy /y \"server\\server.js\" \"dist_server\\server.js\""
   },
   "dependencies": {
     "es-cookie": "^1.1.1",

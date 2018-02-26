@@ -52,6 +52,9 @@
                 nicehash: new Nicehash()
             };
         },
+        mounted: function() {
+            this.nicehash.throttleMode();
+        },
         methods: {
             onUserInput: function(input) {
                 if (

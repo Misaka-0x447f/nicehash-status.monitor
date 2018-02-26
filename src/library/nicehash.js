@@ -15,8 +15,6 @@
 import request from "superagent";
 import Throttle from "superagent-throttle";
 
-const port = 17535;
-
 export default class Nicehash {
     constructor() {
         this.pendingRequest = {};
@@ -29,6 +27,9 @@ export default class Nicehash {
             ratePer: 7000, // number of ms in which `rate` requests may be sent
             concurrent: 3 // how many requests can be sent concurrently
         });
+
+        this.baseUri = window.location.hostname;
+        this.port = 17535;
     }
 
     setAddress(address) {
@@ -87,7 +88,7 @@ export default class Nicehash {
             Nicehash.logger("Warning", "Address not set.");
         }
 
-        let uri = "http://" + window.location.hostname + ":" + port + "/" + method;
+        let uri = "http://" + this.baseUri + ":" + this.port + "/" + method;
         if (throttle > 0) {
             if (Nicehash.getUnixTimeStamp() - this.lastSentRequestAt < throttle) {
                 Nicehash.logger("Throttled request");
@@ -133,7 +134,7 @@ export default class Nicehash {
                 .get(uri)
                 .query(paramArray)
                 .then(function(response) {
-                    Nicehash.logger("Success", response["body"]);
+                    Nicehash.logger("Success", method);
                     callbackSuccess(response["body"]);
                 })
                 .catch(function(error) {
@@ -146,7 +147,7 @@ export default class Nicehash {
                 .query(paramArray)
                 .use(this.throttle.plugin(uri))
                 .then(function(response) {
-                    Nicehash.logger("Success", response["body"]);
+                    Nicehash.logger("Success", method);
                     callbackSuccess(response["body"]);
                 })
                 .catch(function(error) {
@@ -174,7 +175,17 @@ export default class Nicehash {
     }
 
     static logger(method, log) {
-        console.log("[" + (new Date()).toLocaleTimeString() + "] " + method + ": " + log);
+        let output = "[" + (new Date()).toLocaleTimeString() + "] " + method + ": " + log;
+        console.log(output);
+        window.nicehashExternalLog = output;
+    }
+
+    static getLogger() {
+        if (typeof (nicehashExternalLog) === "undefined") {
+            return "<disconnected>";
+        } else {
+            return window.nicehashExternalLog;
+        }
     }
 
     static getUnixTimeStamp(offset = 0) {

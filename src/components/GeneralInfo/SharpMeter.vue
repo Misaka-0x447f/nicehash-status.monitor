@@ -108,7 +108,7 @@
             },
             filteredValue: function() {
                 if (typeof (this.value) !== "number") {
-                    return this.valueMin;
+                    return this.valueMax;
                 }
                 if (this.value > this.valueMax) {
                     return this.valueMax;

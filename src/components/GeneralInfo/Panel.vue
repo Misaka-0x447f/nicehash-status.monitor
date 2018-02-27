@@ -156,8 +156,8 @@
                 return {
                     size: this.panelSize / 3,
                     value: this.profDiff,
-                    valueMin: -5,
-                    valueMax: 5,
+                    valueMin: -15,
+                    valueMax: 15,
                     labelText: "profDiff%"
                 };
             },

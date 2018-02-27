@@ -20,7 +20,7 @@
                 </div>
                 <div>
                     <form v-on:submit.prevent="enterClick()">
-                        <input id="bitcoin-address-ime" class="monospaced" spellcheck="false" autocomplete="false"
+                        <input id="bitcoin-address-ime" class="monospaced" spellcheck="false"
                                :placeholder="placeholder" v-model="textIn"
                                :class="{'invalid-input': showExtendInvalidTips && isValid === 'false'}"
                         >

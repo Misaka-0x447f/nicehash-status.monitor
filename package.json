@@ -17,6 +17,7 @@
     "request": "^2.83.0",
     "superagent": "^3.8.2",
     "superagent-throttle": "^0.2.5",
+    "throttle-debounce": "^1.0.1",
     "vue": "^2.5.2",
     "vue-router": "^3.0.1"
   },

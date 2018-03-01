@@ -1,6 +1,6 @@
 <template>
     <div class="panel-component-root">
-        <div class="panel flex">
+        <div class="panel flex" :style="{fontSize: panelSize / 20 + 'px'}">
             <div class="panel-1 flex-block">
                 <div class="flex-panel">
                     <div class="line flex">
@@ -42,14 +42,16 @@
                     v-bind="workerListContainer"
                 ></worker>
             </div>
+            <console></console>
         </div>
-        <console></console>
     </div>
 </template>
 
 <script>
-    import Nicehash from "../../library/nicehash";
     import * as Cookies from "es-cookie";
+    import throttle from "throttle-debounce/throttle";
+
+    import Nicehash from "../../library/nicehash";
 
     import SmallMeter from "./SmallMeter";
     import LabelNumber from "./LabelNumber";
@@ -80,7 +82,6 @@
                 workerListContainer: {
                     workerList: [
                         {
-                            workerName: "connecting..."
                         }
                     ]
                 }
@@ -152,6 +153,7 @@
             this.nicehash.queueMode();
             this.checkCookie();
             this.setStyle();
+            window.addEventListener("resize", throttle(25, this.setStyle));
             // continues after cookie checked.
         },
         methods: {
@@ -184,6 +186,12 @@
                 }
             },
             setStyle: function() {
+                if (document.body.clientWidth < 720) {
+                    this.panelSize = 300;
+                } else if (document.body.clientWidth < 960) {
+                    this.panelSize = (document.body.clientWidth - 720) * 300 / 720 + 300;
+                }
+
                 let flexPanel = this.$el.querySelectorAll(".flex-panel");
                 for (let i of flexPanel) {
                     i.style.flexBasis = this.panelSize * 1.2 + "px";
@@ -229,6 +237,14 @@
                         (response) => {
                             let stats = response.result.stats;
                             let unpaidBalanceTotal = 0;
+                            if (typeof (stats) !== "object") {
+                                Nicehash.logger("Failed", "provider data invalid.");
+                                console.log("----> response.result.stats");
+                                console.log(stats);
+                                console.log("----> response");
+                                console.log(response);
+                                return false;
+                            }
                             for (let i of stats) {
                                 unpaidBalanceTotal += parseFloat(i["balance"]);
                             }
@@ -254,6 +270,16 @@
                 function getProviderExProcessor(response, self) {
                     let currentStatus = response.result["current"];
                     let currentProf = 0;
+
+                    if (typeof (currentStatus) !== "object") {
+                        Nicehash.logger("Failed", "providerEx data invalid.");
+                        console.log("----> response.result.currentStatus");
+                        console.log(currentStatus);
+                        console.log("----> response");
+                        console.log(response);
+                        return false;
+                    }
+
                     let algoLib = []; // will be useful on past data calc.
                     for (let i of currentStatus) {
                         algoLib[i["algo"]] = {"profitability": i["profitability"]};
@@ -286,23 +312,36 @@
                     let sum1 = 0;
                     let count1 = 0;
                     for (let i of pastProf1) {
-                        sum1 += i;
+                        if (!isNaN(i)) {
+                            sum1 += i;
+                        }
                         count1++;
                     }
 
                     let sum2 = 0;
                     let count2 = 0;
                     for (let i of pastProf2) {
-                        sum2 += i;
+                        if (!isNaN(i)) {
+                            sum2 += i;
+                        }
                         count2++;
                     }
 
+                    function isNumeric(n) {
+                        return !isNaN(parseFloat(n)) && isFinite(n);
+                    }
+
                     self.averageProf = (sum1 / count1 * 30).toFixed(2);
-                    self.profDiff = parseFloat((((sum1 / count1) / (sum2 / count2) - 1) * 100).toFixed(2));
+                    let profDiff = parseFloat((((sum1 / count1) / (sum2 / count2) - 1) * 100).toFixed(2));
+                    if (isNumeric(profDiff)) {
+                        self.profDiff = profDiff;
+                    } else {
+                        self.profDiff = "  N/A";
+                    }
 
                     function sum(array) {
                         return array.reduce((a, b) => {
-                            return a + b;
+                            return (isNaN(a) ? 0 : a) + (isNaN(b) ? 0 : b);
                         }, 0);
                     }
 
@@ -313,6 +352,16 @@
                     // unit: bitcoin
                     let algoLib = [];
                     let current = source.result["current"];
+
+                    if (typeof (current) !== "object") {
+                        Nicehash.logger("Failed", "providerEx/PastProfitability data invalid.");
+                        console.log("----> response.result.current");
+                        console.log(current);
+                        console.log("----> response");
+                        console.log(source);
+                        return false;
+                    }
+
                     for (let i of current) {
                         algoLib[i["algo"]] = {"profitability": i["profitability"]};
                     }
@@ -357,6 +406,16 @@
                             // worker count
                             let workers = response.result.workers;
                             let workerSet = [];
+
+                            if (typeof (workers) !== "object") {
+                                Nicehash.logger("Failed", "worker data invalid.");
+                                console.log("----> response.result.workers");
+                                console.log(workers);
+                                console.log("----> response");
+                                console.log(response);
+                                return false;
+                            }
+
                             for (let i of workers) {
                                 if (workerSet.indexOf(i[0]) === -1) {
                                     workerSet = workerSet.concat([i[0]]);
@@ -424,7 +483,6 @@
                             workerSet.sort(function(a, b) {
                                 return a.workerName > b.workerName;
                             });
-                            console.log(workerSet);
                             self.workerListContainer.workerList = workerSet;
                         },
                         () => {

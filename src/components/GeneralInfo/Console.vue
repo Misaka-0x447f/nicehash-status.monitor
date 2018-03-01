@@ -33,11 +33,11 @@
         opacity: 0.66;
     }
     .console-component-root{
-        position: absolute;
-        bottom: 2em;
+        position: fixed;
+        top: 1em;
         left: 0;
         width: 100%;
-        font-size: 1em;
+        font-size: 0.6em;
         display: flex;
         align-items: center;
         justify-content: center;

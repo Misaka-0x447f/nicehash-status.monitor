@@ -1,5 +1,5 @@
 <template>
-    <div class="component-root">
+    <div class="bottom-center-info-component-root">
         <div id="info">
             nicehashStatusUtility. Vue inside.
             <br/>
@@ -18,7 +18,7 @@
     @theme-color-main: rgba(245, 222, 179, 0.3);
     @theme-color-bright: rgba(245, 222, 179, 0.6);
 
-    .component-root {
+    .bottom-center-info-component-root {
         position: absolute;
         bottom: 2em;
         left: 0;

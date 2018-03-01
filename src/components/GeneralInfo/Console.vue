@@ -1,5 +1,5 @@
 <template>
-    <div class="component-root">
+    <div class="console-component-root">
         <div class="console monospaced">
             {{log}}
         </div>
@@ -32,7 +32,7 @@
         color: @theme-color-main;
         opacity: 0.66;
     }
-    .component-root{
+    .console-component-root{
         position: absolute;
         bottom: 2em;
         left: 0;

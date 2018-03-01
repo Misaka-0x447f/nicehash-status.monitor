@@ -1,8 +1,8 @@
 <template>
-    <div class="component-root">
+    <div class="panel-component-root">
         <div class="panel flex">
-            <div class="left-panel">
-                <div class="inside-sub-panel flex">
+            <div class="panel-1 flex-block">
+                <div class="flex-panel">
                     <div class="line flex">
                         <label-number
                             v-bind="currentProfIndicator"
@@ -37,12 +37,7 @@
                     </div>
                 </div>
             </div>
-            <div class="middle-panel">
-                <sharp-meter
-                    v-bind="currentProfMeter"
-                ></sharp-meter>
-            </div>
-            <div class="right-panel">
+            <div class="panel-2 flex-block">
                 <worker
                     v-bind="workerListContainer"
                 ></worker>
@@ -56,7 +51,6 @@
     import Nicehash from "../../library/nicehash";
     import * as Cookies from "es-cookie";
 
-    import SharpMeter from "./SharpMeter";
     import SmallMeter from "./SmallMeter";
     import LabelNumber from "./LabelNumber";
     import Console from "./Console";
@@ -67,22 +61,14 @@
             Worker,
             Console,
             LabelNumber,
-            SmallMeter,
-            SharpMeter
-        },
-        props: {
-            panelSize: {
-                default: 400,
-                type: Number
-            }
+            SmallMeter
         },
         name: "panel",
         data: function() {
             return {
                 nicehash: new Nicehash(),
-                panelSizePx: this.panelSize + "px",
+                panelSize: 400,
                 currentProf: "----",
-                currentProfMax: "----",
                 averageProf: "----",
                 unpaidBalance: "----",
                 totalBalance: "×",
@@ -106,15 +92,6 @@
                     width: this.panelSize / 2,
                     value: this.currentProf,
                     label: "CNY/d currentProf"
-                };
-            },
-            currentProfMeter: function() {
-                return {
-                    size: this.panelSize,
-                    value: this.currentProf,
-                    valueMin: 0,
-                    valueMax: this.currentProfMax,
-                    icon: "cloud"
                 };
             },
             averageProfIndicator: function() {
@@ -175,7 +152,7 @@
             this.nicehash.queueMode();
             this.checkCookie();
             this.setStyle();
-            // continues after check cookie.
+            // continues after cookie checked.
         },
         methods: {
             checkCookie: function() {
@@ -207,22 +184,14 @@
                 }
             },
             setStyle: function() {
-                let panel = this.$el.querySelectorAll(".panel");
-                for (let i of panel) {
-                    i.style.width = this.panelSize * 3.6 + "px";
+                let flexPanel = this.$el.querySelectorAll(".flex-panel");
+                for (let i of flexPanel) {
+                    i.style.flexBasis = this.panelSize * 1.2 + "px";
+                    i.style.minHeight = this.panelSize * 1.1 + "px";
                 }
-                let panelInside = this.$el.querySelectorAll(".panel > *");
-                for (let i of panelInside) {
-                    i.style.flexBasis = this.panelSize * 1.1 + "px";
-                }
-                let insideSubPanel = this.$el.querySelectorAll(".inside-sub-panel");
-                for (let i of insideSubPanel) {
-                    i.style.minHeight = this.panelSizePx;
-                    i.style.flexBasis = this.panelSize * 1.1 + "px";
-                }
-                let line = this.$el.querySelectorAll(".line");
-                for (let i of line) {
-                    i.style.flexBasis = this.panelSize * 1.1 + "px";
+                let flexBlock = this.$el.querySelectorAll(".flex-block");
+                for (let i of flexBlock) {
+                    i.style.flexBasis = this.panelSize * 1.2 + "px";
                 }
             },
             runAsyncQuery: function() {
@@ -314,14 +283,6 @@
                         pastProf2.push(getPastProfitability(response, i)["accepted"] * bitcoinPriceCNY);
                     }
 
-                    let max = 0;
-                    for (let i of pastProf1) {
-                        if (i > max) {
-                            max = i;
-                        }
-                    }
-                    self.currentProfMax = max;
-
                     let sum1 = 0;
                     let count1 = 0;
                     for (let i of pastProf1) {
@@ -405,7 +366,36 @@
                             // worker list
                             workerSet = [];
                             let algoNames = {
-                                0: "Scrypt", 1: "SHA256", 2: "ScryptNf", 3: "X11", 4: "X13", 5: "Keccak", 6: "X15", 7: "Nist5", 8: "NeoScrypt", 9: "Lyra2RE", 10: "WhirlpoolX", 11: "Qubit", 12: "Quark", 13: "Axiom", 14: "Lyra2REv2", 15: "ScryptJaneNf16", 16: "Blake256r8", 17: "Blake256r14", 18: "Blake256r8vnl", 19: "Hodl", 20: "DaggerHashimoto", 21: "Decred", 22: "CryptoNight", 23: "Lbry", 24: "Equihash", 25: "Pascal", 26: "X11Gost", 27: "Blake2b(Sia)", 28: "Blake2s", 29: "Skunk"
+                                0: "Scrypt",
+                                1: "SHA256",
+                                2: "ScryptNf",
+                                3: "X11",
+                                4: "X13",
+                                5: "Keccak",
+                                6: "X15",
+                                7: "Nist5",
+                                8: "NeoScrypt",
+                                9: "Lyra2RE",
+                                10: "WhirlpoolX",
+                                11: "Qubit",
+                                12: "Quark",
+                                13: "Axiom",
+                                14: "Lyra2REv2",
+                                15: "ScryptJaneNf16",
+                                16: "Blake256r8",
+                                17: "Blake256r14",
+                                18: "Blake256r8vnl",
+                                19: "Hodl",
+                                20: "DaggerHashimoto",
+                                21: "Decred",
+                                22: "CryptoNight",
+                                23: "Lbry",
+                                24: "Equihash",
+                                25: "Pascal",
+                                26: "X11Gost",
+                                27: "Blake2b(Sia)",
+                                28: "Blake2s",
+                                29: "Skunk"
                             };
                             let counter = 0;
                             for (let i of workers) {
@@ -448,14 +438,22 @@
 </script>
 
 <style scoped>
-    .flex {
+    .panel-component-root, .panel.flex {
+        width: 100vw;
+        height: 100vh;
+    }
+
+    .flex, .flex-block {
         display: flex;
         justify-content: space-around;
-        align-content: space-around;
+        align-items: center;
         flex-wrap: wrap;
     }
 
-    .right-panel {
-        position: relative;
+    .flex-panel {
+        display: flex;
+        justify-content: space-around;
+        align-content: space-around;
+        flex-direction: column;
     }
 </style>

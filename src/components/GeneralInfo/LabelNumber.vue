@@ -1,5 +1,5 @@
 <template>
-    <div class="component-root">
+    <div class="label-number-component-root">
         <div :width="width + 'px'">
             <div class="digital monospaced">
                 {{stringifyValue(value)[0]}}<span class="small">{{stringifyValue(value)[1]}}</span>
@@ -69,7 +69,7 @@
     @theme-color-main-fade: rgba(245, 222, 179, 0.67);
     @theme-color-main-fade-2: rgba(245, 222, 179, 0.33);
 
-    .component-root {
+    .label-number-component-root {
         display: block;
         min-width: 10em;
     }

@@ -1,5 +1,5 @@
 <template>
-    <div class="component-root">
+    <div class="pop-up-input-component-root">
         <div id="ani">
             <div class="ani panel panel-1">
             </div>
@@ -269,7 +269,7 @@
 
     /*** animations ***/
 
-    .component-root {
+    .pop-up-input-component-root {
         /* help animation element positioning */
         position: relative;
     }

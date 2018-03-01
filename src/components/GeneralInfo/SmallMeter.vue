@@ -1,5 +1,5 @@
 <template>
-    <div class="component-root monospaced">
+    <div class="small-meter-component-root monospaced">
         <svg :width="size" :height="size" fill="none">
             <path :d="borderDraw" stroke="wheat" :stroke-width="borderWidth" opacity="0.66"></path>
             <path :d="sweepPath(center, center, r, 0, -((filteredValue - valueMin) / (valueMax - valueMin)) * 225)"

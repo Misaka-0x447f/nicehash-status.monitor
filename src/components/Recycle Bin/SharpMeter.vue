@@ -1,5 +1,5 @@
 <template>
-    <div class="component-root">
+    <div class="sharp-meter-component-root">
         <div style="position: relative">
             <svg class="icon" fill="wheat" v-if="icon === 'cloud'" :height="size / 4" :width="size / 4" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" :style="{position: 'absolute', top: size * 6 / 16, left: size * 6 / 16}">
                 <path d="M0 0h24v24H0z" fill="none"/>
@@ -203,7 +203,7 @@
     @theme-color-main-fade: rgba(245, 222, 179, 0.67);
     @theme-color-main-fade-2: rgba(245, 222, 179, 0.33);
 
-    .component-root {
+    .sharp-meter-component-root {
         display: flex;
     }
 

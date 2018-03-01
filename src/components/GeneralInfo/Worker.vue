@@ -1,5 +1,5 @@
 <template>
-    <div class="component-root">
+    <div class="worker-component-root">
         <table class="worker">
             <tbody>
                 <tr v-for="i in workerList" :key="i.key">
@@ -25,10 +25,8 @@
 </script>
 
 <style scoped>
-    .component-root {
-        position: absolute;
+    .worker-component-root {
         width: 100%;
-        height: 100%;
     }
 
     .worker {

@@ -1,5 +1,5 @@
 <template>
-    <div class="label-number-component-root">
+    <div class="label-number-component-root" :class="{fade: fade}">
         <div :width="width + 'px'">
             <div class="digital monospaced">
                 {{stringifyValue(value)[0]}}<span class="small">{{stringifyValue(value)[1]}}</span>
@@ -33,8 +33,17 @@
         },
         data: function() {
             return {
-                maxFixedCount: 0
+                maxFixedCount: 0,
+                fade: false
             };
+        },
+        watch: {
+            value: function() {
+                this.setStyle();
+            }
+        },
+        mounted: function() {
+            this.setStyle();
         },
         methods: {
             stringifyValue: function(value) {
@@ -52,6 +61,9 @@
                     integer,
                     this.padZero(fixed, this.maxFixedCount)
                 ];
+            },
+            setStyle() {
+                this.fade = this.value === "×";
             },
             padZero: function(source, counts) {
                 // A simple and easy to understand pad zero function.
@@ -83,7 +95,11 @@
         }
     }
 
-    .label{
+    .label {
         font-size: 0.8em;
+    }
+
+    .fade {
+        opacity: 0.3;
     }
 </style>

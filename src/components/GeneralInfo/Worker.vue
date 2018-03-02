@@ -31,6 +31,7 @@
 
     .worker {
         width: 100%;
-        font-weight: 100;
+        font-weight: 300;
+        padding: 0.5em 1em;
     }
 </style>

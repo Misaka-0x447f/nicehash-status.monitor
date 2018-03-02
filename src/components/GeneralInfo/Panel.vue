@@ -3,7 +3,7 @@
         <div class="panel flex" :style="{fontSize: panelSize / 20 + 'px'}">
             <div class="panel-1 flex-block">
                 <div class="flex-panel">
-                    <div class="line flex">
+                    <div class="line flex-line">
                         <label-number
                             v-bind="currentProfIndicator"
                         ></label-number>
@@ -11,7 +11,7 @@
                             v-bind="averageProfIndicator"
                         ></label-number>
                     </div>
-                    <div class="line flex">
+                    <div class="line flex-line">
                         <label-number
                             v-bind="unpaidBalanceIndicator"
                         ></label-number>
@@ -19,7 +19,7 @@
                             v-bind="totalBalanceIndicator"
                         ></label-number>
                     </div>
-                    <div class="line flex">
+                    <div class="line flex-line">
                         <label-number
                             v-bind="bitcoinPriceIndicator"
                         ></label-number>
@@ -27,7 +27,7 @@
                             v-bind="activeWorkerIndicator"
                         ></label-number>
                     </div>
-                    <div class="line flex">
+                    <div class="line flex-line">
                         <small-meter
                             v-bind="profDiffIndicator"
                         ></small-meter>
@@ -153,7 +153,7 @@
             this.nicehash.queueMode();
             this.checkCookie();
             this.setStyle();
-            window.addEventListener("resize", throttle(25, this.setStyle));
+            window.addEventListener("resize", throttle(75, this.setStyle));
             // continues after cookie checked.
         },
         methods: {
@@ -189,7 +189,18 @@
                 if (document.body.clientWidth < 720) {
                     this.panelSize = 300;
                 } else if (document.body.clientWidth < 960) {
-                    this.panelSize = (document.body.clientWidth - 720) * 300 / 720 + 300;
+                    this.panelSize = (document.body.clientWidth - 720) * 300 / 720 + 300 - 10;
+                    // +10px reduces element flashing
+                } else {
+                    this.panelSize = 400;
+                }
+
+                let panel = this.$el.querySelector(".panel");
+
+                if (document.body.clientWidth < 720) {
+                    panel.style.alignContent = "flex-start";
+                } else {
+                    panel.style.alignContent = "center";
                 }
 
                 let flexPanel = this.$el.querySelectorAll(".flex-panel");
@@ -200,6 +211,7 @@
                 let flexBlock = this.$el.querySelectorAll(".flex-block");
                 for (let i of flexBlock) {
                     i.style.flexBasis = this.panelSize * 1.2 + "px";
+                    i.style.maxHeight = this.panelSize * 1.1 + "px";
                 }
             },
             runAsyncQuery: function() {
@@ -495,13 +507,26 @@
     };
 </script>
 
-<style scoped>
+<style lang="less" scoped>
     .panel-component-root, .panel.flex {
         width: 100vw;
-        height: 100vh;
     }
 
-    .flex, .flex-block {
+    .flex{
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .flex-line{
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .flex-block {
         display: flex;
         justify-content: space-around;
         align-items: center;

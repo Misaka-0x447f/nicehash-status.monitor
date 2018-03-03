@@ -1,12 +1,13 @@
 <template>
-    <div class="worker-component-root">
+    <div class="worker-component-root monospaced">
         <table class="worker">
             <tbody>
-                <tr v-for="i in workerList" :key="i.key">
-                    <td v-if="i.workerName">{{i.workerName}}</td>
-                    <td v-if="i.algorithm">{{i.algorithm}}</td>
-                    <td v-if="i.accepted">{{i.accepted}}</td>
-                    <td v-if="i.rejected">{{i.rejected}}</td>
+                <tr v-if="workerList.length > 0" v-for="i in workerList" :key="i.key">
+                    <td>{{i.workerName ? i.workerName : ""}}</td>
+                    <td>{{i.algorithm ? i.algorithm : "unknown"}}</td>
+                    <td>{{i.accepted ? i.accepted : "×"}}</td>
+                    <td>{{i.rejected ? i.rejected : ""}}</td>
+                    <td>{{i.suffix ? i.suffix : ""}}/s</td>
                 </tr>
             </tbody>
         </table>
@@ -27,6 +28,7 @@
 <style scoped>
     .worker-component-root {
         width: 100%;
+        font-size: 0.8em;
     }
 
     .worker {

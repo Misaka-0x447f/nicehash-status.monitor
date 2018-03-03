@@ -174,9 +174,18 @@ export default class Nicehash {
         }()));
     }
 
-    static logger(method, log) {
-        let output = "[" + (new Date()).toLocaleTimeString() + "] " + method + ": " + log;
-        console.log(output);
+    static logger(type, log) {
+        let output = "[" + (new Date()).toLocaleTimeString() + "] " + type + (log ? (": " + log) : "");
+        if (type === "Warning") {
+            console.log("%c" + output, "background: #ffc; color: #000; padding: 2px 0");
+        } else if (type === "Failed") {
+            console.log("%c" + output, "background: #fcc; color: #000; padding: 2px 0");
+        } else if (type === "Debug") {
+            console.log("%c" + output, "background: #6cf; color: #fff; padding: 2px 0");
+        } else {
+            console.log(output);
+        }
+
         window.nicehashExternalLog = output;
     }
 

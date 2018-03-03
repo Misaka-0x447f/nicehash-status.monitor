@@ -84,7 +84,8 @@
                         {
                         }
                     ]
-                }
+                },
+                algoLib: [] // information of all algorithms.
             };
         },
         computed: {
@@ -217,7 +218,6 @@
             runAsyncQuery: function() {
                 priceBTCCNY(this);
                 priceBTC(this);
-                getProviderWorker(this);
 
                 function priceBTCCNY(self) {
                     self.nicehash.getPriceBitcoin(
@@ -292,9 +292,12 @@
                         return false;
                     }
 
-                    let algoLib = []; // will be useful on past data calc.
                     for (let i of currentStatus) {
-                        algoLib[i["algo"]] = {"profitability": i["profitability"]};
+                        self.algoLib[i["algo"]] = {
+                            "name": i["name"],
+                            "profitability": i["profitability"],
+                            "suffix": i["suffix"]
+                        };
                         let currentAlgoSpeedSum = 0;
                         for (let j of i.data) {
                             if (j.hasOwnProperty("a")) {
@@ -305,6 +308,9 @@
                     }
                     self.currentProf = parseFloat((currentProf * self.bitcoinPriceCNY).toFixed(2));
 
+                    // algoLib initialized; querying worker.
+                    getProviderWorker(self);
+
                     /*************************************/
 
                     let bitcoinPriceCNY = self.bitcoinPriceCNY;
@@ -312,43 +318,13 @@
                     let pastProf1 = [];
                     let pastReje1 = [];
                     for (let i = Nicehash.getUnixTimeStamp(); i > Nicehash.getUnixTimeStamp(86400); i -= 300) {
-                        let query = getPastProfitability(response, i);
+                        let query = getPastProfitability(self, response, i);
                         pastProf1.push(query["accepted"] * bitcoinPriceCNY);
                         pastReje1.push(query["rejected"] * bitcoinPriceCNY);
                     }
                     let pastProf2 = [];
                     for (let i = Nicehash.getUnixTimeStamp(86400); i > Nicehash.getUnixTimeStamp(86400 * 2); i -= 300) {
-                        pastProf2.push(getPastProfitability(response, i)["accepted"] * bitcoinPriceCNY);
-                    }
-
-                    let sum1 = 0;
-                    let count1 = 0;
-                    for (let i of pastProf1) {
-                        if (!isNaN(i)) {
-                            sum1 += i;
-                        }
-                        count1++;
-                    }
-
-                    let sum2 = 0;
-                    let count2 = 0;
-                    for (let i of pastProf2) {
-                        if (!isNaN(i)) {
-                            sum2 += i;
-                        }
-                        count2++;
-                    }
-
-                    function isNumeric(n) {
-                        return !isNaN(parseFloat(n)) && isFinite(n);
-                    }
-
-                    self.averageProf = (sum1 / count1 * 30).toFixed(2);
-                    let profDiff = parseFloat((((sum1 / count1) / (sum2 / count2) - 1) * 100).toFixed(2));
-                    if (isNumeric(profDiff)) {
-                        self.profDiff = profDiff;
-                    } else {
-                        self.profDiff = "  N/A";
+                        pastProf2.push(getPastProfitability(self, response, i)["accepted"] * bitcoinPriceCNY);
                     }
 
                     function sum(array) {
@@ -357,12 +333,24 @@
                         }, 0);
                     }
 
+                    function isNumeric(n) {
+                        return !isNaN(parseFloat(n)) && isFinite(n);
+                    }
+
+                    // TODO: Something may be wrong here. Waiting for future test.
+                    self.averageProf = (sum(pastProf1) / 288 * 30).toFixed(2);
+                    let profDiff = parseFloat((((sum(pastProf1) / 288) / (sum(pastProf2) / 288) - 1) * 100).toFixed(2));
+                    if (isNumeric(profDiff)) {
+                        self.profDiff = profDiff;
+                    } else {
+                        self.profDiff = "  N/A";
+                    }
+
                     self.efficiency = parseFloat((sum(pastProf1) / (sum(pastProf1) + sum(pastReje1)) * 100).toFixed(2));
                 }
 
-                function getPastProfitability(source, unixTimeStamp) {
+                function getPastProfitability(self, source, unixTimeStamp) {
                     // unit: bitcoin
-                    let algoLib = [];
                     let current = source.result["current"];
 
                     if (typeof (current) !== "object") {
@@ -374,8 +362,8 @@
                         return false;
                     }
 
-                    for (let i of current) {
-                        algoLib[i["algo"]] = {"profitability": i["profitability"]};
+                    function isNumeric(n) {
+                        return !isNaN(parseFloat(n)) && isFinite(n);
                     }
 
                     let past = source.result["past"];
@@ -390,13 +378,15 @@
                                 foundFlag = true;
                                 let value = j[1];
                                 if (j[1].hasOwnProperty(["a"])) {
-                                    prof += algoLib[i["algo"]]["profitability"] * parseFloat(j[1]["a"]);
+                                    let singleProf = self.algoLib[i["algo"]]["profitability"] * parseFloat(j[1]["a"]);
+                                    isNumeric(singleProf) ? prof += singleProf : prof += 0;
                                     delete value["a"];
                                 }
                                 value = Object.values(value);
                                 if (Object.keys(value).length > 0) {
                                     for (let k of value) {
-                                        reject += algoLib[i["algo"]]["profitability"] * parseFloat(k);
+                                        let singleReject = self.algoLib[i["algo"]]["profitability"] * parseFloat(k);
+                                        isNumeric(singleReject) ? reject += singleReject : reject += 0;
                                     }
                                 }
                                 break;
@@ -434,40 +424,9 @@
                                 }
                             }
                             self.activeWorker = workerSet.length;
+
                             // worker list
                             workerSet = [];
-                            let algoNames = {
-                                0: "Scrypt",
-                                1: "SHA256",
-                                2: "ScryptNf",
-                                3: "X11",
-                                4: "X13",
-                                5: "Keccak",
-                                6: "X15",
-                                7: "Nist5",
-                                8: "NeoScrypt",
-                                9: "Lyra2RE",
-                                10: "WhirlpoolX",
-                                11: "Qubit",
-                                12: "Quark",
-                                13: "Axiom",
-                                14: "Lyra2REv2",
-                                15: "ScryptJaneNf16",
-                                16: "Blake256r8",
-                                17: "Blake256r14",
-                                18: "Blake256r8vnl",
-                                19: "Hodl",
-                                20: "DaggerHashimoto",
-                                21: "Decred",
-                                22: "CryptoNight",
-                                23: "Lbry",
-                                24: "Equihash",
-                                25: "Pascal",
-                                26: "X11Gost",
-                                27: "Blake2b(Sia)",
-                                28: "Blake2s",
-                                29: "Skunk"
-                            };
                             let counter = 0;
                             for (let i of workers) {
                                 let accepted = 0;
@@ -483,15 +442,18 @@
                                         rejected += parseFloat(speedObject[j]);
                                     }
                                 }
+
                                 workerSet = workerSet.concat({
                                     key: counter,
                                     workerName: i[0],
-                                    algorithm: algoNames[i[6]],
+                                    algorithm: self.algoLib[i[6]]["name"],
                                     accepted: accepted,
-                                    rejected: rejected
+                                    rejected: rejected,
+                                    suffix: self.algoLib[i[6]]["suffix"]
                                 });
                                 counter++;
                             }
+
                             workerSet.sort(function(a, b) {
                                 return a.workerName > b.workerName;
                             });

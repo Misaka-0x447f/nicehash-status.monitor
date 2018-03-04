@@ -22,6 +22,9 @@
                     <form v-on:submit.prevent="enterClick()">
                         <input name="nicehash-bitcoin-address" id="bitcoin-address-ime" class="monospaced"
                                spellcheck="false" autocomplete="on"
+
+                               data-paraFillName="address" data-inputEventName="userInput"
+
                                :placeholder="placeholder" v-model="textIn"
                                :class="{'invalid-input': showExtendInvalidTips && isValid === 'false'}"
                         >
@@ -160,10 +163,28 @@
             window.addEventListener("keydown", () => {
                 this.$el.querySelector("#bitcoin-address-ime").focus();
             });
-            this.$el.querySelector("#bitcoin-address-ime").addEventListener("input", () => {
-                this.$emit("userInput", this.$el.querySelector("#bitcoin-address-ime").value);
-                this.showExtendInvalidTips = false;
-            });
+
+            // the following are how input check works
+            let fireEventElements = this.$el.querySelectorAll("[data-inputEventName]");
+            console.log(fireEventElements);
+            for (let i of fireEventElements) {
+                i.addEventListener("input", () => {
+                    this.$emit(i.attributes["data-inputEventName"]["nodeValue"], i.value);
+                    this.showExtendInvalidTips = false;
+                });
+            }
+
+            // the following are how auto-fill parameter works
+            let autoFillElements = this.$el.querySelectorAll("[data-paraFillName]");
+            let parameterList = this.$route.query;
+            for (let i of autoFillElements) {
+                let slot = i.attributes["data-paraFillName"]["nodeValue"];
+                if (parameterList.hasOwnProperty(slot)) {
+                    // TODO: have no idea about how to emit an event here. Maybe solve it later.
+                    i.value = parameterList[slot];
+                    this.showExtendInvalidTips = false;
+                }
+            }
         },
         methods: {
             buttonClick: function(s) {

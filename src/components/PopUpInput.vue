@@ -25,7 +25,7 @@
 
                                data-paraFillName="address" data-inputEventName="userInput"
 
-                               :placeholder="placeholder" v-model="textIn"
+                               :placeholder="placeholder"
                                :class="{'invalid-input': showExtendInvalidTips && isValid === 'false'}"
                         >
                     </form>
@@ -44,7 +44,7 @@
 
                     </span>
                     <span v-for="i in buttons" class="button"
-                          :class="{disabled: (i.linkValidator && isValid !== 'true')}" v-on:click="buttonClick(i)"
+                          :class="{disabled: (i.linkValidator && isValid === 'false')}" v-on:click="buttonClick(i)"
                           :key="i.length">
                         {{ i.text }}
                     </span>
@@ -120,7 +120,6 @@
         },
         data: function() {
             return {
-                textIn: "",
                 showExtendInvalidTips: false
             };
         },
@@ -166,7 +165,6 @@
 
             // the following are how input check works
             let fireEventElements = this.$el.querySelectorAll("[data-inputEventName]");
-            console.log(fireEventElements);
             for (let i of fireEventElements) {
                 i.addEventListener("input", () => {
                     this.$emit(i.attributes["data-inputEventName"]["nodeValue"], i.value);
@@ -174,32 +172,53 @@
                 });
             }
 
-            // the following are how auto-fill parameter works
-            let autoFillElements = this.$el.querySelectorAll("[data-paraFillName]");
-            let parameterList = this.$route.query;
-            for (let i of autoFillElements) {
-                let slot = i.attributes["data-paraFillName"]["nodeValue"];
-                if (parameterList.hasOwnProperty(slot)) {
-                    // TODO: have no idea about how to emit an event here. Maybe solve it later.
-                    i.value = parameterList[slot];
-                    this.showExtendInvalidTips = false;
+            this.$nextTick(() => {
+                // the following are how auto-fill parameter works
+                let autoFillElements = this.$el.querySelectorAll("[data-paraFillName]");
+                let parameterList = this.$route.query;
+                for (let i of autoFillElements) {
+                    let slot = i.attributes["data-paraFillName"]["nodeValue"];
+                    if (parameterList.hasOwnProperty(slot)) {
+                        i.value = parameterList[slot];
+
+                        // emit an event if has this attr
+                        // TODO: have no idea about how to emit an event here. Maybe solve it later.
+                        if (i.attributes.hasOwnProperty("data-inputEventName")) {
+                            this.$emit(i.attributes["data-inputEventName"]["nodeValue"], i.value);
+                        }
+                    }
                 }
-            }
+            });
         },
         methods: {
             buttonClick: function(s) {
                 if (s.hasOwnProperty("eventString")) {
                     if (s.hasOwnProperty("payload") && s.payload === true) {
-                        this.$emit(s.eventString, this.textIn);
+                        this.$emit(s.eventString, this.$el.querySelector("input").value);
                     } else {
                         this.$emit(s.eventString);
                     }
                 }
+
                 this.showExtendInvalidTips = true;
 
-                // GOTO route?
-                if ((s.hasOwnProperty("goto") && (!s.hasOwnProperty("linkValidator") || s.linkValidator !== true)) ||
-                    (s.hasOwnProperty("goto") && s.linkValidator === true && this.isValid === "true")
+                /**
+                 * GOTO route?
+                 * Condition #0: has goto
+                 * Condition #1: not linked validator
+                 * Condition #2: validator return true or unknown
+                 * Condition is true: #0 and (#1 or #2)
+                 */
+                if (
+                    s.hasOwnProperty("goto") && (
+                        (
+                            !s.hasOwnProperty("linkValidator") ||
+                            s.linkValidator !== true
+                        ) || (
+                            s.linkValidator === true &&
+                            this.isValid !== "false"
+                        )
+                    )
                 ) {
                     this.$router.push(s.goto);
                 }

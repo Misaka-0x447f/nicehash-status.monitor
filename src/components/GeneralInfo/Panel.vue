@@ -337,7 +337,7 @@
                         return !isNaN(parseFloat(n)) && isFinite(n);
                     }
 
-                    // TODO: Something may be wrong here. Waiting for future test.
+                    // TODO: I think that there's nothing wrong now. But still need test.
                     self.averageProf = (sum(pastProf1) / 288 * 30).toFixed(2);
                     let profDiff = parseFloat((((sum(pastProf1) / 288) / (sum(pastProf2) / 288) - 1) * 100).toFixed(2));
                     if (isNumeric(profDiff)) {

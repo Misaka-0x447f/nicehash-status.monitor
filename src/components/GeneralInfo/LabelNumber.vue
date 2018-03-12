@@ -63,7 +63,7 @@
                 ];
             },
             setStyle() {
-                this.fade = this.value === "×";
+                this.fade = (this.value === "×" || this.value === "----");
             },
             padZero: function(source, counts) {
                 // A simple and easy to understand pad zero function.

@@ -1,5 +1,5 @@
 <template>
-    <div class="small-meter-component-root monospaced">
+    <div class="small-meter-component-root monospaced" :class="{fade: fade}">
         <svg :width="size" :height="size" fill="none">
             <path :d="borderDraw" stroke="wheat" :stroke-width="borderWidth" opacity="0.66"></path>
             <path :d="sweepPath(center, center, r, 0, -((filteredValue - valueMin) / (valueMax - valueMin)) * 225)"
@@ -44,8 +44,17 @@
         },
         data: function() {
             return {
-                maxFixedCount: 0
+                maxFixedCount: 0,
+                fade: false
             };
+        },
+        mounted: function() {
+            this.setStyle();
+        },
+        watch: {
+            value: function() {
+                this.setStyle();
+            }
         },
         computed: {
             d: function() {
@@ -90,6 +99,9 @@
             }
         },
         methods: {
+            setStyle: function() {
+                this.fade = (this.value === "×" || this.value === "----");
+            },
             arcPath: function(centerX, centerY, r, start, duration) {
                 // This function will throw back a string in path syntax for using. All angle unit are Degree.
                 function polarToRect(centerX, centerY, r, angleInDegrees) {
@@ -183,5 +195,9 @@
         font-size: 16px;
         alignment-baseline: baseline;
         text-anchor: end;
+    }
+
+    .fade {
+        opacity: 0.3;
     }
 </style>

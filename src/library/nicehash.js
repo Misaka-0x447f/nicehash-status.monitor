@@ -83,6 +83,15 @@ export default class Nicehash {
         this.httpRequest("price.btc", {currency: currency}, callbackSuccess, callbackFailed, this.fastThrottle);
     }
 
+    getBalance(key, callbackSuccess, callbackFailed) {
+        key = key.split(".");
+        if (key.length !== 2) {
+            Nicehash.logger("Failed", "Incorrect key format.");
+            return false;
+        }
+        this.httpRequest("balance", {id: key[0], key: key[1]}, callbackSuccess, callbackFailed, this.fastThrottle);
+    }
+
     httpRequest(method, paramArray, callbackSuccess, callbackFailed, throttle = 3) {
         if (typeof (this.address) !== "string") {
             Nicehash.logger("Warning", "Address not set.");

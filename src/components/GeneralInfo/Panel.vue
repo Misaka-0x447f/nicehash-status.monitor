@@ -81,8 +81,6 @@
                 efficiency: "----",
                 workerListContainer: {
                     workerList: [
-                        {
-                        }
                     ]
                 },
                 algoLib: [] // information of all algorithms.
@@ -185,6 +183,10 @@
                 } else {
                     this.$router.push("/setup");
                 }
+
+                if (typeof Cookies.get("key") === "string") {
+                    this.totalBalance = "----";
+                }
             },
             setStyle: function() {
                 if (document.body.clientWidth < 720) {
@@ -225,6 +227,7 @@
                             self.bitcoinPriceCNY = response["result"]["data"]["amount"];
                             getProvider(self);
                             getProviderEx(self);
+                            getBalance(self);
                         },
                         () => {
                             priceBTCCNY(self);
@@ -461,6 +464,32 @@
                         },
                         () => {
                             getProviderWorker(self);
+                        }
+                    );
+                }
+                function getBalance(self) {
+                    let key = Cookies.get("key");
+                    if (typeof key !== "string") {
+                        return false;
+                    }
+                    self.nicehash.getBalance(
+                        key,
+                        (response) => {
+                            let value =
+                                (
+                                    parseFloat(response["result"]["balance_pending"]) * self.bitcoinPriceCNY +
+                                    parseFloat(response["result"]["balance_confirmed"]) * self.bitcoinPriceCNY
+                                ).toFixed(2)
+                            ;
+                            function isNumeric(n) {
+                                return !isNaN(parseFloat(n)) && isFinite(n);
+                            }
+                            if (isNumeric(value)) {
+                                self.totalBalance = value;
+                            }
+                        },
+                        () => {
+                            getBalance(self);
                         }
                     );
                 }

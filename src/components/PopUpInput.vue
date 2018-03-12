@@ -26,7 +26,6 @@
                                :data-autoFillName="i.autoFillName" :data-name="i.name"
 
                                :placeholder="i.placeholder" :title="i.placeholder"
-                               :class="{'invalid-input': showExtendInvalidTips && isValid === 'false'}"
                         >
                     </form>
                 </div>
@@ -55,7 +54,6 @@
 </template>
 
 <script>
-    // TODO: test this component.
     /**
      * Input component.
      * @author Misaka_0x447f
@@ -329,10 +327,6 @@
 
     .button:hover:not(.disabled) {
         background-color: @theme-color-main-fade-2;
-    }
-
-    .invalid-input {
-        background-color: rgba(139, 0, 0, 0.25);
     }
 
     #button-flex-container {

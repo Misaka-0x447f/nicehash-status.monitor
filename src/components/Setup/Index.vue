@@ -33,6 +33,11 @@
                             name: "address",
                             placeholder: "nicehash miner address",
                             autoFillName: "address"
+                        },
+                        {
+                            name: "key",
+                            placeholder: "api id & secret key (optional)",
+                            autoFillName: "key"
                         }
                     ],
                     buttons: [
@@ -89,6 +94,10 @@
             },
             onUserSetupAddress: function(input) {
                 Cookies.set("address", input["address"]);
+                // key format: <id>.<secret-key>
+                if (input.hasOwnProperty("key") && input.key.length > 0) {
+                    Cookies.set("key", input["key"]);
+                }
             }
         }
     };

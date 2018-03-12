@@ -23,7 +23,7 @@
                         <input name="nicehash-bitcoin-address" id="bitcoin-address-ime" class="monospaced"
                                spellcheck="false" autocomplete="on"
 
-                               data-paraFillName="address" data-inputEventName="userInput"
+                               data-autoFillName="address" data-inputEventName="userInput"
 
                                :placeholder="placeholder"
                                :class="{'invalid-input': showExtendInvalidTips && isValid === 'false'}"
@@ -61,30 +61,32 @@
      * @param param comments.
      * * means optional
      * × Planed to be remove. Development must be completed before apply to more component.
-     * typeof  name                                 comment
+     * typeof  name                             comment
      * ---Common---
-     * array   (anonymous)                          A group of settings.
-     * string  (anonymous).comment                  The message which will shown on the dialog.
-     * ×string  (anonymous).placeholder             Placeholder in the input box.
+     * array   (Array)                          A group of settings.
+     * string  (Array).comment                  The message which will shown on the dialog.
+     * ×string (Array).placeholder              Placeholder in the input box.
      * ---External Validator API---
-     * *string (anonymous).isValid                  Is input valid? "true", "false", "unknown"
-     * *string (anonymous).validSymbol              Shown when input is valid. A symbol like {👌, ●, ✓} is recommended.
-     * *string (anonymous).invalidSymbol            Shown when invalid. How about {×}？
-     * *string (anonymous).invalidTips              Shown when invalid and user clicked disabled button.
+     * *string (Array).isValid                  Is input valid? "true", "false", "unknown"
+     * *string (Array).validSymbol              Shown when input is valid. A symbol like {👌, ●, ✓} is recommended.
+     * *string (Array).invalidSymbol            Shown when invalid. How about {×}？
+     * *string (Array).invalidTips              Shown when invalid and user clicked disabled button.
      * ---Buttons---
-     * array   (anonymous).buttons                  A group of buttons definition.
-     * string  (anonymous).buttons[i].text          Button label.
-     * *bool   (anonymous).buttons[i].linkValidator Should I link disable status to validator?
+     * array   (Array).buttons                  A group of buttons definition.
+     * string  (Array).buttons[i].text          Button label.
+     * *bool   (Array).buttons[i].linkValidator Should I link disable status to validator?
      * ---Buttons action: emit event---
-     * *string (anonymous).buttons[i].eventString   Event name which will be emitted on click.
-     * *bool   (anonymous).buttons[i].payload       Should I emit event with user input?
+     * *string (Array).buttons[i].eventString   Event name which will be emitted on click.
+     * *bool   (Array).buttons[i].payload       Should I emit event with user input?
      * ---Buttons action: goto---
-     * *string (anonymous).buttons[i].goto          On click go to. Router string required.
+     * *string (Array).buttons[i].goto          On click go to. Router string required.
      *
      * -----UNDER CONSTRUCTION-----
      * ---Input Field---
-     * array   (anonymous).field                    A group of input field definition.
-     * string  (anonymous).field[i].placeholder     Placeholder string.
+     * array   (Array).field                    A group of input field definition.
+     * string  (Array).field[i].placeholder     Placeholder string.
+     * *string (Array).field[i].autoFillName    AutoFill string. Comes from url parameter.
+     * *string (Array).field[i].inputEventName  Emit this event on input.
      *
      * @event userInput - payload is the input string.
      */
@@ -174,10 +176,10 @@
 
             this.$nextTick(() => {
                 // the following are how auto-fill parameter works
-                let autoFillElements = this.$el.querySelectorAll("[data-paraFillName]");
+                let autoFillElements = this.$el.querySelectorAll("[data-autoFillName]");
                 let parameterList = this.$route.query;
                 for (let i of autoFillElements) {
-                    let slot = i.attributes["data-paraFillName"]["nodeValue"];
+                    let slot = i.attributes["data-autoFillName"]["nodeValue"];
                     if (parameterList.hasOwnProperty(slot)) {
                         i.value = parameterList[slot];
 

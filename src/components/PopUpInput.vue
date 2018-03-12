@@ -55,37 +55,80 @@
 </template>
 
 <script>
+    // TODO: test this component.
     /**
      * Input component.
+     * @author Misaka_0x447f
+     * @mail 447f.misaka@outlook.com
      *
      * @param param comments.
-     * * means optional
+     * *optional
+     *
      * typeof  name                             comment
      * ---Common---
-     * array   (Array)                          A group of settings.
-     * string  (Array).comment                  The message which will shown on the dialog.
+     * string  (Array).comment                  Message in the dialog.[1]
      * ---Input Field Definition---
-     * array   (Array).fields                   A group of input field definition.
-     * string  (Array).fields[i].name           Field identifier
+     * array   (Array).fields                   Input fields definition.
+     * string  (Array).fields[i].name           Field identifier that will be used to pack up.[2]
      * string  (Array).fields[i].placeholder    Field placeholder string.
-     * *string (Array).fields[i].autoFillName   Field auto-fill string. Comes from url.
-     * ---Buttons Definition---
-     * array   (Array).buttons                  A group of buttons definition.
-     * string  (Array).buttons[i].text          Button label.
-     * *bool   (Array).buttons[i].linkValidator Should I link disable status to validator?
-     * ---Buttons action: on submit event---
-     * *string (Array).buttons[i].eventString   Event name which will be emitted on click. Payloads every thing in field.
-     * ---Buttons action: on click goto---
-     * *string (Array).buttons[i].goto          On click go to. Router string required.
-     * ---External Validator API---
-     * string  (Array).inputEventString         Event name that will be emitted every time user input something.
-     * *string (Array).isValid                  Is all input valid? "true", "false", "unknown"
+     * *string (Array).fields[i].autoFillName   Field auto-fill string. Comes from url.[3]
+     * ---Input Field Definition: validator---
+     * string  (Array).inputEventString         Event name that will be emitted on change.[2]
+     * *string (Array).isValid                  Is all input field valid? "true", "false", "unknown"
      * *string (Array).validSymbol              Shown when input is valid. A symbol like {👌, ●, ✓} is recommended.
      * *string (Array).invalidSymbol            Shown when invalid. How about {×}？
      * *string (Array).invalidTips              Shown when invalid and user clicked disabled button.
+     * ---Buttons Definition---
+     * array   (Array).buttons                  Buttons definition.
+     * string  (Array).buttons[i].text          Button label.
+     * *bool   (Array).buttons[i].linkValidator If validator is false, disable this button.
+     * ---Buttons Definition: action---
+     * *string (Array).buttons[i].eventString   Event name that will be emitted on click.[2]
+     * *string (Array).buttons[i].goto          On click go to router path.
      *
-     * Every time the input changes, this component will emit an event contains all things in the field.
-     * Event name will be defined by (Array).inputEventString.
+     * [1]  If you want to highlight something you can use double star ** just like markdown.
+     *      For example, "You need to **Login** to continue".
+     * [2]  Every time an event that emitted has a payload which contains an object we called "package".
+     *      The package contains all value from each input fields.
+     * [3]  Auto-fill using data from get.
+     *      For example, the url is "http://localhost:8080/?value=123", then the field with autoFillName="value"
+     *      will be auto filled with 123.
+     *
+     *  @example-param
+     *  {
+     *      comment: "to **Login**, please fill your account name."
+     *      fields: [
+     *          {
+     *              name: "username",
+     *              placeholder: "Username, email address or phone number",
+     *              autoFillName: "username"
+     *          }
+     *      ],
+     *      buttons: [
+     *          {
+     *              text: "more option",
+     *              goto: "login/more-option"
+     *          },
+     *          {
+     *              text: "next →",
+     *              eventString: "onSubmit",
+     *              linkValidator: true,
+     *              goto: "/login/password"
+     *          }
+     *      ],
+     *      inputEventString: "onInputChange",
+     *      isValid: "unknown" // will be changed by validator
+     *      validSymbol: "",
+     *      invalidSymbol: "×",
+     *      invalidTips: "please check your input"
+     *  }
+     *
+     *  @example-payload
+     *  {
+     *      "username": "alice-bob-charlie",
+     *      "password": "foo-bar-baz",
+     *      "2fa": "123-123-123"
+     *  }
      */
     export default {
         name: "PopUpInput",

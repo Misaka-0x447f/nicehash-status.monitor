@@ -28,7 +28,13 @@
                 dialog: {
                     /* "**" is special here. the component will parse it as a important word. html should be filtered. */
                     comment: "to **setup**, field \"address\" is required",
-                    placeholder: "address (nicehash)",
+                    fields: [
+                        {
+                            name: "address",
+                            placeholder: "nicehash miner address",
+                            autoFillName: "address"
+                        }
+                    ],
                     buttons: [
                         /* future button
                         {
@@ -39,11 +45,11 @@
                         {
                             text: "Okay",
                             eventString: "userSetupAddress",
-                            payload: true,
                             linkValidator: true,
                             goto: "/"
                         }
                     ],
+                    inputEventString: "userInput",
                     isValid: "unknown", /* will be changed by validator */
                     validSymbol: "✓",
                     invalidSymbol: "×",
@@ -57,6 +63,7 @@
         },
         methods: {
             onUserInput: function(input) {
+                input = input["address"];
                 if (
                     (input.length === 34 && input.slice(0, 1) === "1") ||
                     (input.length === 34 && input.slice(0, 1) === "3") ||
@@ -81,7 +88,7 @@
                 }
             },
             onUserSetupAddress: function(input) {
-                Cookies.set("address", input);
+                Cookies.set("address", input["address"]);
             }
         }
     };

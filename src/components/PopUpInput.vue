@@ -15,17 +15,17 @@
         <div id="content" class="ani">
             <div id="content-internal" class="ani">
                 <div>
-                    <label for="bitcoin-address-ime" class="comment" v-html="commentComputed">
-                    </label>
+                    <span class="comment" v-html="commentComputed">
+                    </span>
                 </div>
                 <div>
-                    <form v-on:submit.prevent="enterClick()">
-                        <input name="nicehash-bitcoin-address" id="bitcoin-address-ime" class="monospaced"
+                    <form v-on:submit.prevent="enterClick()" v-for="i in fields" :key="i.length">
+                        <input class="monospaced"
                                spellcheck="false" autocomplete="on"
 
-                               data-autoFillName="address" data-inputEventName="userInput"
+                               :data-autoFillName="i.autoFillName" :data-name="i.name"
 
-                               :placeholder="placeholder"
+                               :placeholder="i.placeholder" :title="i.placeholder"
                                :class="{'invalid-input': showExtendInvalidTips && isValid === 'false'}"
                         >
                     </form>
@@ -60,35 +60,32 @@
      *
      * @param param comments.
      * * means optional
-     * × Planed to be remove. Development must be completed before apply to more component.
      * typeof  name                             comment
      * ---Common---
      * array   (Array)                          A group of settings.
      * string  (Array).comment                  The message which will shown on the dialog.
-     * ×string (Array).placeholder              Placeholder in the input box.
-     * ---External Validator API---
-     * *string (Array).isValid                  Is input valid? "true", "false", "unknown"
-     * *string (Array).validSymbol              Shown when input is valid. A symbol like {👌, ●, ✓} is recommended.
-     * *string (Array).invalidSymbol            Shown when invalid. How about {×}？
-     * *string (Array).invalidTips              Shown when invalid and user clicked disabled button.
-     * ---Buttons---
+     * ---Input Field Definition---
+     * array   (Array).fields                   A group of input field definition.
+     * string  (Array).fields[i].name           Field identifier
+     * string  (Array).fields[i].placeholder    Field placeholder string.
+     * *string (Array).fields[i].autoFillName   Field auto-fill string. Comes from url.
+     * ---Buttons Definition---
      * array   (Array).buttons                  A group of buttons definition.
      * string  (Array).buttons[i].text          Button label.
      * *bool   (Array).buttons[i].linkValidator Should I link disable status to validator?
-     * ---Buttons action: emit event---
-     * *string (Array).buttons[i].eventString   Event name which will be emitted on click.
-     * *bool   (Array).buttons[i].payload       Should I emit event with user input?
-     * ---Buttons action: goto---
+     * ---Buttons action: on submit event---
+     * *string (Array).buttons[i].eventString   Event name which will be emitted on click. Payloads every thing in field.
+     * ---Buttons action: on click goto---
      * *string (Array).buttons[i].goto          On click go to. Router string required.
+     * ---External Validator API---
+     * string  (Array).inputEventString         Event name that will be emitted every time user input something.
+     * *string (Array).isValid                  Is all input valid? "true", "false", "unknown"
+     * *string (Array).validSymbol              Shown when input is valid. A symbol like {👌, ●, ✓} is recommended.
+     * *string (Array).invalidSymbol            Shown when invalid. How about {×}？
+     * *string (Array).invalidTips              Shown when invalid and user clicked disabled button.
      *
-     * -----UNDER CONSTRUCTION-----
-     * ---Input Field---
-     * array   (Array).field                    A group of input field definition.
-     * string  (Array).field[i].placeholder     Placeholder string.
-     * *string (Array).field[i].autoFillName    AutoFill string. Comes from url parameter.
-     * *string (Array).field[i].inputEventName  Emit this event on input.
-     *
-     * @event userInput - payload is the input string.
+     * Every time the input changes, this component will emit an event contains all things in the field.
+     * Event name will be defined by (Array).inputEventString.
      */
     export default {
         name: "PopUpInput",
@@ -96,12 +93,15 @@
             comment: {
                 type: String
             },
-            placeholder: {
-                default: "",
-                type: String
+            fields: {
+                type: Array
             },
             buttons: {
                 type: Array
+            },
+            inputEventString: {
+                default: "userInput",
+                type: String
             },
             isValid: {
                 default: "unset",
@@ -160,17 +160,12 @@
             for (let i of elements) {
                 i.style.animationPlayState = "running";
             }
-            /* focus once not works here, this may caused by animation */
-            window.addEventListener("keydown", () => {
-                this.$el.querySelector("#bitcoin-address-ime").focus();
-            });
 
-            // the following are how input check works
-            let fireEventElements = this.$el.querySelectorAll("[data-inputEventName]");
+            // the following codes are how input check works
+            let fireEventElements = this.$el.querySelectorAll("[data-name]");
             for (let i of fireEventElements) {
                 i.addEventListener("input", () => {
-                    this.$emit(i.attributes["data-inputEventName"]["nodeValue"], i.value);
-                    this.showExtendInvalidTips = false;
+                    this.emitEverything(this.inputEventString);
                 });
             }
 
@@ -193,15 +188,22 @@
             });
         },
         methods: {
-            buttonClick: function(s) {
-                if (s.hasOwnProperty("eventString")) {
-                    if (s.hasOwnProperty("payload") && s.payload === true) {
-                        this.$emit(s.eventString, this.$el.querySelector("input").value);
-                    } else {
-                        this.$emit(s.eventString);
-                    }
+            emitEverything: function(name) {
+                let pkg = {};
+                let fireEventElements = this.$el.querySelectorAll("[data-name]");
+                for (let i of fireEventElements) {
+                    pkg[i.attributes["data-name"]["nodeValue"]] = i.value;
+                }
+                this.$emit(name, pkg);
+                this.showExtendInvalidTips = false;
+            },
+            buttonClick: function(buttonInstance) {
+                // Emit field info on click?
+                if (buttonInstance.hasOwnProperty("eventString")) {
+                    this.emitEverything(buttonInstance.eventString);
                 }
 
+                // Let user know if they are wrong
                 this.showExtendInvalidTips = true;
 
                 /**
@@ -212,20 +214,21 @@
                  * Condition is true: #0 and (#1 or #2)
                  */
                 if (
-                    s.hasOwnProperty("goto") && (
+                    buttonInstance.hasOwnProperty("goto") && (
                         (
-                            !s.hasOwnProperty("linkValidator") ||
-                            s.linkValidator !== true
+                            !buttonInstance.hasOwnProperty("linkValidator") ||
+                            buttonInstance.linkValidator !== true
                         ) || (
-                            s.linkValidator === true &&
+                            buttonInstance.linkValidator === true &&
                             this.isValid !== "false"
                         )
                     )
                 ) {
-                    this.$router.push(s.goto);
+                    this.$router.push(buttonInstance.goto);
                 }
             },
             enterClick: function() {
+                // Click last button.
                 this.buttonClick(this.buttons[this.buttons.length - 1]);
             }
         }
@@ -253,7 +256,7 @@
         text-shadow: 0 0 2px black;
     }
 
-    #bitcoin-address-ime {
+    input {
         font-size: 0.8em;
         min-width: 34.2ch;
     }

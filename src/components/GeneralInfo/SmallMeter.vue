@@ -193,7 +193,6 @@
     text {
         fill: @theme-color-main;
         font-size: 16px;
-        alignment-baseline: baseline;
         text-anchor: end;
     }
 

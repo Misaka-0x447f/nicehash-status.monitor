@@ -64,8 +64,8 @@
     #background-image {
         background: url("./assets/wallpaper.jpg");
         background-size: cover;
-        width: 100vw;
-        height: 100vh;
+        width: 125%;
+        height: 125%;
         position: fixed;
         top: 0;
         z-index: -2147483647;

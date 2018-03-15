@@ -374,11 +374,9 @@
                     let reject = 0;
                     for (let i of past) {
                         // single algo
-                        let foundFlag = false;
                         for (let j of i.data) {
                             // single timestamp
                             if (j[0] === Math.floor(unixTimeStamp / 300)) {
-                                foundFlag = true;
                                 let value = j[1];
                                 if (j[1].hasOwnProperty(["a"])) {
                                     let singleProf = self.algoLib[i["algo"]]["profitability"] * parseFloat(j[1]["a"]);
@@ -394,9 +392,6 @@
                                 }
                                 break;
                             }
-                        }
-                        if (foundFlag === false) {
-                            return false;
                         }
                     }
                     return {

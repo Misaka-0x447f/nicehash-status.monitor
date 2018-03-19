@@ -93,6 +93,7 @@ export default class Nicehash {
     }
 
     httpRequest(method, paramArray, callbackSuccess, callbackFailed, throttle = 3) {
+        let startAt = (new Date()).getTime() / 1000;
         if (typeof (this.address) !== "string") {
             Nicehash.logger("Warning", "Address not set.");
         }
@@ -156,7 +157,7 @@ export default class Nicehash {
                 .query(paramArray)
                 .use(this.throttle.plugin(uri))
                 .then(function(response) {
-                    Nicehash.logger("Success", method);
+                    Nicehash.logger("Success", method + " in " + ((new Date()).getTime() / 1000 - startAt).toFixed(2) + "s");
                     callbackSuccess(response["body"]);
                 })
                 .catch(function(error) {

@@ -44,6 +44,21 @@
             </div>
             <console></console>
         </div>
+        <md-progress-bar
+            md-mode="determinate"
+            :md-value="progress / progressMax * 100"
+            v-if="progress < progressMax"
+            class="progress-bar"
+        >
+        </md-progress-bar>
+        <md-progress-spinner
+            md-mode="indeterminate"
+            :md-diameter="parseInt('20')"
+            :md-stroke="parseFloat('1.5')"
+            v-if="progress < progressMax"
+            class="spinner"
+        >
+        </md-progress-spinner>
     </div>
 </template>
 
@@ -52,11 +67,14 @@
     import throttle from "throttle-debounce/throttle";
 
     import Nicehash from "../../library/nicehash";
+    import util from "../../util";
 
     import SmallMeter from "./SmallMeter";
     import LabelNumber from "./LabelNumber";
     import Console from "./Console";
     import Worker from "./Worker";
+
+    import "vue-material/dist/vue-material.min.css";
 
     export default {
         components: {
@@ -83,7 +101,9 @@
                     workerList: [
                     ]
                 },
-                algoLib: [] // information of all algorithms.
+                algoLib: [], // information of all algorithms.
+                progress: 0,
+                progressMax: 15
             };
         },
         computed: {
@@ -218,12 +238,35 @@
                 }
             },
             runAsyncQuery: function() {
+                // comes from stat
+                this.mass = {
+                    "init": 0.2,
+                    "priceBTC": 1.99,
+                    "priceBTCCNY": 1.99,
+                    "statsProvider": 7.06,
+                    "statsProviderEx": 10.08,
+                    "statsProviderWorkers": 6.20,
+                    "balance": 14.03
+                };
+                this.progress += this.mass.init;
+                this.progressMax = util.sum(this.mass);
+
+                /***
+                 * priceBTC
+                 * priceBTCCNY
+                 *  statsProvider
+                 *  statsProviderEx
+                 *   statsProviderWorker
+                 *  balance
+                 */
+
                 priceBTCCNY(this);
                 priceBTC(this);
 
                 function priceBTCCNY(self) {
                     self.nicehash.getPriceBitcoin(
                         (response) => {
+                            self.progress += self.mass.priceBTCCNY;
                             self.bitcoinPriceCNY = response["result"]["data"]["amount"];
                             getProvider(self);
                             getProviderEx(self);
@@ -239,6 +282,7 @@
                 function priceBTC(self) {
                     self.nicehash.getPriceBitcoin(
                         (response) => {
+                            self.progress += self.mass.priceBTC;
                             self.bitcoinPrice = parseInt(response["result"]["data"]["amount"]);
                         },
                         () => {
@@ -250,6 +294,7 @@
                 function getProvider(self) {
                     self.nicehash.getProvider(
                         (response) => {
+                            self.progress += self.mass.statsProvider;
                             let stats = response.result.stats;
                             let unpaidBalanceTotal = 0;
                             if (typeof (stats) !== "object") {
@@ -274,6 +319,7 @@
                 function getProviderEx(self) {
                     self.nicehash.getProviderEx(
                         (response) => {
+                            self.progress += self.mass.statsProviderEx;
                             getProviderExProcessor(response, self);
                         },
                         () => {
@@ -403,6 +449,7 @@
                 function getProviderWorker(self) {
                     self.nicehash.getProviderWorkers(
                         (response) => {
+                            self.progress += self.mass.statsProviderWorkers;
                             // worker count
                             let workers = response.result.workers;
                             let workerSet = [];
@@ -470,6 +517,7 @@
                     self.nicehash.getBalance(
                         key,
                         (response) => {
+                            self.progress += self.mass.balance;
                             let value =
                                 (
                                     parseFloat(response["result"]["balance_pending"]) * self.bitcoinPriceCNY +
@@ -494,6 +542,31 @@
 </script>
 
 <style lang="less" scoped>
+    @theme-color-main: wheat;
+    @theme-color-main-fade: rgba(245, 222, 179, 0.67);
+    @theme-color-main-fade-2: rgba(245, 222, 179, 0.33);
+
+    .spinner {
+        position: fixed;
+        top: 1vw;
+        left: 1vw;
+    }
+
+    .progress-bar{
+        position: fixed;
+        top: 0;
+        width: 100%;
+        height: 3px;
+    }
+
+    .spinner /deep/ .md-progress-spinner-draw{
+        stroke: @theme-color-main;
+    }
+
+    .progress-bar /deep/ .md-progress-bar-fill{
+        background-color: @theme-color-main;
+    }
+
     .panel-component-root, .panel.flex {
         width: 100vw;
     }

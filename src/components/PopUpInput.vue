@@ -128,6 +128,9 @@
      *      "2fa": "123-123-123"
      *  }
      */
+
+    import util from "../util";
+
     export default {
         name: "PopUpInput",
         props: {
@@ -169,18 +172,8 @@
         computed: {
             commentComputed: function() {
                 /* "**" is special here. the component will parse it as a important word. html should be filtered. */
-                function escapeHTML(unsafeStr) {
-                    return unsafeStr
-                        .replace(/&/g, "&amp;")
-                        .replace(/</g, "&lt;")
-                        .replace(/>/g, "&gt;")
-                        .replace(/"/g, "&quot;")
-                        .replace(/'/g, "&#39;")
-                        .replace(/\//g, "&#x2F;");
-                }
-
                 let sto = this.comment;
-                sto = escapeHTML(sto);
+                sto = util.escapeHTML(sto);
                 /* replace "important" mark */
                 let i = 0;
                 while (sto.match(/\*{2}/)) {

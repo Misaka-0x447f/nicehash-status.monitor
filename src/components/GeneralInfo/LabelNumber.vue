@@ -12,6 +12,8 @@
 </template>
 
 <script>
+    import util from "../../util";
+
     export default {
         name: "label-number",
         props: {
@@ -59,18 +61,11 @@
 
                 return [
                     integer,
-                    this.padZero(fixed, this.maxFixedCount)
+                    util.padZero(fixed, this.maxFixedCount)
                 ];
             },
             setStyle() {
                 this.fade = (this.value === "×" || this.value === "----");
-            },
-            padZero: function(source, counts) {
-                // A simple and easy to understand pad zero function.
-                while (source.length < counts) {
-                    source += "0";
-                }
-                return source;
             }
         }
     };

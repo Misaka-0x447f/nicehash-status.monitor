@@ -45,6 +45,8 @@
 </template>
 
 <script>
+    import util from "../../util";
+
     export default {
         name: "sharp-meter",
         props: {
@@ -101,7 +103,7 @@
                 return Math.sqrt(2) * this.r / 2;
             },
             progressMask: function() {
-                return this.sweepPath(this.center, this.center, this.center + 1, -45, 270 * (1 - (this.filteredValue - this.valueMin) / (this.valueMax - this.valueMin)));
+                return util.sweepPath(this.center, this.center, this.center + 1, -45, 270 * (1 - (this.filteredValue - this.valueMin) / (this.valueMax - this.valueMin)));
             },
             valueFontSize: function() {
                 return (this.size / 24 + 50) / (this.stringifyValue(this.value).length / 2);
@@ -125,43 +127,6 @@
             };
         },
         methods: {
-            arcPath: function(centerX, centerY, r, start, duration) {
-                // This function will throw back a string in path syntax for using. All angle unit are Degree.
-                function polarToRect(centerX, centerY, r, angleInDegrees) {
-                    // angleInDegrees starts at the top of circle
-                    let angleInRadians = angleInDegrees * Math.PI / 180.0;
-
-                    return {
-                        x: centerX + (r * Math.cos(angleInRadians)),
-                        // NOT mathematical coordinate
-                        y: centerY - (r * Math.sin(angleInRadians))
-                    };
-                }
-
-                let startPos = polarToRect(centerX, centerY, r, start);
-                let endPos = polarToRect(centerX, centerY, r, start + duration);
-                let rotation = Math.floor(Math.abs(duration) / 180) % 2 === 0 ? 0 : 1;
-                return [
-                    "L", startPos.x, startPos.y,
-                    // A rx ry x-axis-rotation large-arc-flag sweep-flag x         y
-                    "A", r, r, 0, rotation, duration > 0 ? 0 : 1, endPos.x, endPos.y
-                ].join(" ");
-            },
-            sweepPath: function(centerX, centerY, r, start, duration) {
-                function isNumeric(n) {
-                    return !isNaN(parseFloat(n)) && isFinite(n);
-                }
-                for (let i of [centerX, centerY, r, start, duration]) {
-                    if (!isNumeric(i)) {
-                        return "";
-                    }
-                }
-                return [
-                    "M", centerX, centerY,
-                    this.arcPath(centerX, centerY, r, start, duration),
-                    "L", centerX, centerY
-                ].join(" ");
-            },
             stringifyValue: function(value) {
                 if (typeof (value) === "number") {
                     let digit = value.toString().split(".");
@@ -178,7 +143,7 @@
                         return [
                             integer,
                             ".",
-                            this.padZero(fixed, this.maxFixedCount)
+                            util.padZero(fixed, this.maxFixedCount)
                         ].join("");
                     } else {
                         return integer;
@@ -186,13 +151,6 @@
                 } else {
                     return value;
                 }
-            },
-            padZero: function(source, counts) {
-                // A simple and easy to understand pad zero function.
-                while (source.length < counts) {
-                    source += "0";
-                }
-                return source;
             }
         }
     };

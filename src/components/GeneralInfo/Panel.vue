@@ -376,26 +376,16 @@
                         pastProf2.push(getPastProfitability(self, response, i)["accepted"] * bitcoinPriceCNY);
                     }
 
-                    function sum(array) {
-                        return array.reduce((a, b) => {
-                            return (isNaN(a) ? 0 : a) + (isNaN(b) ? 0 : b);
-                        }, 0);
-                    }
-
-                    function isNumeric(n) {
-                        return !isNaN(parseFloat(n)) && isFinite(n);
-                    }
-
                     // TODO: I think that there's nothing wrong now. But still need test.
-                    self.averageProf = (sum(pastProf1) / 288 * 30).toFixed(2);
-                    let profDiff = parseFloat((((sum(pastProf1) / 288) / (sum(pastProf2) / 288) - 1) * 100).toFixed(2));
-                    if (isNumeric(profDiff)) {
+                    self.averageProf = (util.sum(pastProf1) / 288 * 30).toFixed(2);
+                    let profDiff = parseFloat((((util.sum(pastProf1) / 288) / (util.sum(pastProf2) / 288) - 1) * 100).toFixed(2));
+                    if (util.isNumeric(profDiff)) {
                         self.profDiff = profDiff;
                     } else {
                         self.profDiff = "  N/A";
                     }
 
-                    self.efficiency = parseFloat((sum(pastProf1) / (sum(pastProf1) + sum(pastReje1)) * 100).toFixed(2));
+                    self.efficiency = parseFloat((util.sum(pastProf1) / (util.sum(pastProf1) + util.sum(pastReje1)) * 100).toFixed(2));
                 }
 
                 function getPastProfitability(self, source, unixTimeStamp) {
@@ -411,10 +401,6 @@
                         return false;
                     }
 
-                    function isNumeric(n) {
-                        return !isNaN(parseFloat(n)) && isFinite(n);
-                    }
-
                     let past = source.result["past"];
                     let prof = 0;
                     let reject = 0;
@@ -426,14 +412,14 @@
                                 let value = j[1];
                                 if (j[1].hasOwnProperty(["a"])) {
                                     let singleProf = self.algoLib[i["algo"]]["profitability"] * parseFloat(j[1]["a"]);
-                                    isNumeric(singleProf) ? prof += singleProf : prof += 0;
+                                    util.isNumeric(singleProf) ? prof += singleProf : prof += 0;
                                     delete value["a"];
                                 }
                                 value = Object.values(value);
                                 if (Object.keys(value).length > 0) {
                                     for (let k of value) {
                                         let singleReject = self.algoLib[i["algo"]]["profitability"] * parseFloat(k);
-                                        isNumeric(singleReject) ? reject += singleReject : reject += 0;
+                                        util.isNumeric(singleReject) ? reject += singleReject : reject += 0;
                                     }
                                 }
                                 break;
@@ -524,10 +510,7 @@
                                     parseFloat(response["result"]["balance_confirmed"]) * self.bitcoinPriceCNY
                                 ).toFixed(2)
                             ;
-                            function isNumeric(n) {
-                                return !isNaN(parseFloat(n)) && isFinite(n);
-                            }
-                            if (isNumeric(value)) {
+                            if (util.isNumeric(value)) {
                                 self.totalBalance = value;
                             }
                         },

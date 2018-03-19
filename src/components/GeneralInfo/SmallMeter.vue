@@ -2,7 +2,7 @@
     <div class="small-meter-component-root monospaced" :class="{fade: fade}">
         <svg :width="size" :height="size" fill="none">
             <path :d="borderDraw" stroke="wheat" :stroke-width="borderWidth" opacity="0.66"></path>
-            <path :d="sweepPath(center, center, r, 0, -((filteredValue - valueMin) / (valueMax - valueMin)) * 225)"
+            <path :d="getPath()"
                   fill="wheat" opacity="0.33"></path>
             <text :x="center * 2" :y="center * 0.95" :style="{'font-size': textSize1}">{{ stringifyValue(value) }}
             </text>
@@ -13,6 +13,8 @@
 </template>
 
 <script>
+    import util from "../../util";
+
     export default {
         name: "small-meter",
         props: {
@@ -99,45 +101,11 @@
             }
         },
         methods: {
+            getPath: function() {
+                return util.sweepPath(this.center, this.center, this.r, 0, -((this.filteredValue - this.valueMin) / (this.valueMax - this.valueMin)) * 225);
+            },
             setStyle: function() {
                 this.fade = (this.value === "×" || this.value === "----");
-            },
-            arcPath: function(centerX, centerY, r, start, duration) {
-                // This function will throw back a string in path syntax for using. All angle unit are Degree.
-                function polarToRect(centerX, centerY, r, angleInDegrees) {
-                    // angleInDegrees starts at the top of circle
-                    let angleInRadians = angleInDegrees * Math.PI / 180.0;
-
-                    return {
-                        x: centerX + (r * Math.cos(angleInRadians)),
-                        // NOT mathematical coordinate
-                        y: centerY - (r * Math.sin(angleInRadians))
-                    };
-                }
-
-                let startPos = polarToRect(centerX, centerY, r, start);
-                let endPos = polarToRect(centerX, centerY, r, start + duration);
-                let rotation = Math.floor(Math.abs(duration) / 180) % 2 === 0 ? 0 : 1;
-                return [
-                    "L", startPos.x, startPos.y,
-                    // A rx ry x-axis-rotation large-arc-flag sweep-flag x         y
-                    "A", r, r, 0, rotation, duration > 0 ? 0 : 1, endPos.x, endPos.y
-                ].join(" ");
-            },
-            sweepPath: function(centerX, centerY, r, start, duration) {
-                function isNumeric(n) {
-                    return !isNaN(parseFloat(n)) && isFinite(n);
-                }
-                for (let i of [centerX, centerY, r, start, duration]) {
-                    if (!isNumeric(i)) {
-                        return "";
-                    }
-                }
-                return [
-                    "M", centerX, centerY,
-                    this.arcPath(centerX, centerY, r, start, duration),
-                    "L", centerX, centerY
-                ].join(" ");
             },
             stringifyValue: function(value) {
                 if (typeof (value) === "number") {
@@ -154,7 +122,7 @@
                     if (fixedPart.toString().length > this.maxFixedCount) {
                         this.maxFixedCount = fixedPart.toString().length;
                     }
-                    fixedPart = this.padZero(fixedPart, this.maxFixedCount);
+                    fixedPart = util.padZero(fixedPart, this.maxFixedCount);
 
                     if (fixedPart.length > 0) {
                         return [
@@ -172,13 +140,6 @@
                 } else {
                     return value;
                 }
-            },
-            padZero: function(source, counts) {
-                // A simple and easy to understand pad zero function.
-                while (source.length < counts) {
-                    source += "0";
-                }
-                return source;
             }
         }
     };

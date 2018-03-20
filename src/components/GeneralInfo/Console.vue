@@ -34,8 +34,7 @@
     }
     .console-component-root{
         position: fixed;
-        top: 1em;
-        left: 0;
+        top: 12px;
         width: 100%;
         font-size: 0.6em;
         display: flex;

@@ -58,7 +58,8 @@
     }
 
     body {
-        font-size: 20px;
+        font-size: inherit;
+        line-height: inherit;
         margin: 0;
     }
 

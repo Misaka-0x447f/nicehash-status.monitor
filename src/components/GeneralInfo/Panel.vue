@@ -42,7 +42,7 @@
                     v-bind="workerListContainer"
                 ></worker>
             </div>
-            <console></console>
+            <console class="console"></console>
         </div>
         <md-progress-bar
             md-mode="determinate"
@@ -54,7 +54,7 @@
         <md-progress-spinner
             md-mode="indeterminate"
             :md-diameter="parseInt('20')"
-            :md-stroke="parseFloat('1.5')"
+            :md-stroke="parseFloat('2')"
             v-if="progress < progressMax"
             class="spinner"
         >
@@ -98,8 +98,7 @@
                 profDiff: "----",
                 efficiency: "----",
                 workerListContainer: {
-                    workerList: [
-                    ]
+                    workerList: []
                 },
                 algoLib: [], // information of all algorithms.
                 progress: 0,
@@ -240,7 +239,7 @@
             runAsyncQuery: function() {
                 // comes from stat
                 this.mass = {
-                    "init": 0.2,
+                    "init": 1,
                     "priceBTC": 1.99,
                     "priceBTCCNY": 1.99,
                     "statsProvider": 7.06,
@@ -495,6 +494,7 @@
                         }
                     );
                 }
+
                 function getBalance(self) {
                     let key = Cookies.get("key");
                     if (typeof key !== "string") {
@@ -531,22 +531,22 @@
 
     .spinner {
         position: fixed;
-        top: 1vw;
-        left: 1vw;
+        top: 12px;
+        left: 6px;
     }
 
-    .progress-bar{
+    .progress-bar {
         position: fixed;
         top: 0;
         width: 100%;
         height: 3px;
     }
 
-    .spinner /deep/ .md-progress-spinner-draw{
+    .spinner /deep/ .md-progress-spinner-draw {
         stroke: @theme-color-main;
     }
 
-    .progress-bar /deep/ .md-progress-bar-fill{
+    .progress-bar /deep/ .md-progress-bar-fill {
         background-color: @theme-color-main;
     }
 
@@ -554,14 +554,14 @@
         width: 100vw;
     }
 
-    .flex{
+    .flex {
         display: flex;
         justify-content: space-around;
         align-items: center;
         flex-wrap: wrap;
     }
 
-    .flex-line{
+    .flex-line {
         display: flex;
         justify-content: space-around;
         align-items: center;
@@ -580,5 +580,9 @@
         justify-content: space-around;
         align-content: space-around;
         flex-direction: column;
+    }
+
+    .console {
+        max-width: calc(100% - 50px);
     }
 </style>

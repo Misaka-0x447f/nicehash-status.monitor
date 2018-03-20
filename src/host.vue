@@ -58,6 +58,7 @@
     }
 
     body {
+        font-size: 20px;
         margin: 0;
     }
 

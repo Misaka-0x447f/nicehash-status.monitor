@@ -4,9 +4,9 @@ import Vue from "vue";
 import App from "./host";
 import router from "./router";
 
-import VueMaterial from "vue-material";
+import MdProgress from "vue-material";
 
-Vue.use(VueMaterial);
+Vue.use(MdProgress);
 
 Vue.config.productionTip = false;
 

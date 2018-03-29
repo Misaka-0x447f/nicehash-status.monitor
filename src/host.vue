@@ -57,9 +57,9 @@
         user-select: none;
     }
 
-    body {
-        font-size: inherit;
-        line-height: inherit;
+    html > body {
+        font-size: 20px;
+        line-height: 20px;
         margin: 0;
     }
 

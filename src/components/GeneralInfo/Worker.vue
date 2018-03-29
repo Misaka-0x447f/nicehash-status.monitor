@@ -1,4 +1,4 @@
-<template>
+<template functional>
     <div class="worker-component-root monospaced">
         <table class="worker">
             <tbody>

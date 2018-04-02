@@ -10,7 +10,6 @@
 </template>
 
 <script>
-    // TODO: there must be something wrong here. I have no idea about why it looks like zoomed. At 46f0abc7fd659bf9609d80bcc966a01d5558cdde it should be okay.
     import PopUpInput from "../PopUpInput";
     import BottomCenterInfo from "./BottomCenterInfo";
 

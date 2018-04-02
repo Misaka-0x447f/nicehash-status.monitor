@@ -208,15 +208,6 @@
                 }
             },
             setStyle: function() {
-                if (document.body.clientWidth < 720) {
-                    this.panelSize = 300;
-                } else if (document.body.clientWidth < 960) {
-                    this.panelSize = (document.body.clientWidth - 720) * 300 / 720 + 300 - 10;
-                    // +10px reduces element flashing
-                } else {
-                    this.panelSize = 400;
-                }
-
                 let panel = this.$el.querySelector(".panel");
 
                 if (document.body.clientWidth < 720) {
@@ -234,6 +225,15 @@
                 for (let i of flexBlock) {
                     i.style.flexBasis = this.panelSize * 1.2 + "px";
                     i.style.maxHeight = this.panelSize * 1.1 + "px";
+                }
+
+                if (document.body.clientWidth < 720) {
+                    this.panelSize = 300;
+                } else if (document.body.clientWidth < 960) {
+                    this.panelSize = (document.body.clientWidth - 720) * 300 / 720 + 300 - 10;
+                    // +10px reduces element flashing
+                } else {
+                    this.panelSize = 400;
                 }
             },
             runAsyncQuery: function() {

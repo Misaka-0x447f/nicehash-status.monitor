@@ -12,7 +12,7 @@
 </template>
 
 <script>
-    import util from "../../util";
+    import util from "../../library/util";
 
     export default {
         name: "label-number",

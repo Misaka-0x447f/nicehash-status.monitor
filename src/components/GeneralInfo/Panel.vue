@@ -67,7 +67,7 @@
     import throttle from "throttle-debounce/throttle";
 
     import Nicehash from "../../library/nicehash";
-    import util from "../../util";
+    import util from "../../library/util";
 
     import SmallMeter from "./SmallMeter";
     import LabelNumber from "./LabelNumber";

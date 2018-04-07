@@ -48,140 +48,146 @@ export default class Nicehash {
         this.slowThrottle = 0;
     }
 
-    getProvider(callbackSuccess, callbackFailed) {
-        this.httpRequest("stats.provider", {addr: this.address}, callbackSuccess, callbackFailed, this.fastThrottle);
+    getProvider() {
+        return this.httpRequest("stats.provider", {addr: this.address}, this.fastThrottle);
     }
 
-    isValidAddress(address, callbackSuccess, callbackFailed) {
+    isValidAddress(address) {
         /**
          * This method will callback with a boolean which indicates if it is a valid address.
          */
-        this.httpRequest("stats.provider", {addr: address},
-            (response) => {
-                if (response["result"].hasOwnProperty("error") === true) {
-                    callbackSuccess("false");
-                } else {
-                    callbackSuccess("true");
-                }
-            }, callbackFailed, this.fastThrottle);
+        return new Promise((resolve, reject) => {
+            this.httpRequest("stats.provider", {addr: address}, this.fastThrottle)
+                .then(function() {
+                    if (response["result"].hasOwnProperty("error") === true) {
+                        resolve("false");
+                    } else {
+                        resolve("true");
+                    }
+                })
+                .catch(function() {
+                    reject("unknown");
+                });
+        });
     }
 
-    getProviderEx(callbackSuccess, callbackFailed) {
-        this.httpRequest("stats.provider.ex", {
+    getProviderEx() {
+        return this.httpRequest("stats.provider.ex", {
             addr: this.address,
             from: Nicehash.getUnixTimeStamp(86400 * 3)
-        }, callbackSuccess, callbackFailed, this.slowThrottle);
+        }, this.slowThrottle);
     }
 
-    getProviderWorkers(callbackSuccess, callbackFailed) {
-        this.httpRequest("stats.provider.workers", {
+    getProviderWorkers() {
+        return this.httpRequest("stats.provider.workers", {
             addr: this.address
-        }, callbackSuccess, callbackFailed, this.fastThrottle);
+        }, this.fastThrottle);
     }
 
-    getPriceBitcoin(callbackSuccess, callbackFailed, currency = "USD") {
-        this.httpRequest("price.btc", {currency: currency}, callbackSuccess, callbackFailed, this.fastThrottle);
+    getPriceBitcoin(currency = "USD") {
+        return this.httpRequest("price.btc", {currency: currency}, this.fastThrottle);
     }
 
-    getBalance(key, callbackSuccess, callbackFailed) {
+    getBalance(key) {
         key = key.split(".");
         if (key.length !== 2) {
             Nicehash.logger("Failed", "Incorrect key format.");
             return false;
         }
-        this.httpRequest("balance", {id: key[0], key: key[1]}, callbackSuccess, callbackFailed, this.fastThrottle);
+        return this.httpRequest("balance", {id: key[0], key: key[1]}, this.fastThrottle);
     }
 
-    httpRequest(method, paramArray, callbackSuccess, callbackFailed, throttle = 3) {
-        let startAt = (new Date()).getTime() / 1000;
-        if (typeof (this.address) !== "string") {
-            Nicehash.logger("Warning", "Address not set.");
-        }
-
-        let uri = "http://" + this.baseUri + ":" + this.port + "/" + method;
-        if (throttle > 0) {
-            if (Nicehash.getUnixTimeStamp() - this.lastSentRequestAt < throttle) {
-                Nicehash.logger("Throttled request");
-
-                callbackFailed({internalError: "Request too frequently. Your request will be queued unless more request in before limiter released."});
-
-                // discard previous request
-                if (this.pendingRequest.hasOwnProperty("timer")) {
-                    clearTimeout(this.pendingRequest.timer);
-                }
-
-                // overwrite previous request and set timer
-                this.pendingRequest = {
-                    method: method,
-                    paramArray: paramArray,
-                    callbackSuccess: callbackSuccess,
-                    callbackFailed: callbackFailed,
-                    throttle: throttle
-                };
-
-                console.log(this.pendingRequest);
-
-                this.pendingRequest.timer = setTimeout(() => {
-                    this.httpRequest(
-                        this.pendingRequest.method,
-                        this.pendingRequest.paramArray,
-                        this.pendingRequest.callbackSuccess,
-                        this.pendingRequest.callbackFailed,
-                        this.pendingRequest.throttle
-                    );
-                }, (this.lastSentRequestAt + throttle - Nicehash.getUnixTimeStamp()) * 1000);
-
-                return true;
+    httpRequest(method, paramArray, throttle = 3) {
+        return new Promise((resolve, reject) => {
+            let startAt = (new Date()).getTime() / 1000;
+            if (typeof (this.address) !== "string") {
+                Nicehash.logger("Warning", "Address not set.");
             }
-            this.lastSentRequestAt = Nicehash.getUnixTimeStamp();
-            // discard previous request
-            if (this.pendingRequest.hasOwnProperty("timer")) {
-                clearTimeout(this.pendingRequest.timer);
-            }
-            this.pendingRequest = {};
 
-            request
-                .get(uri)
-                .query(paramArray)
-                .then(function(response) {
-                    Nicehash.logger("Success", method);
-                    callbackSuccess(response["body"]);
-                })
-                .catch(function(error) {
-                    Nicehash.logger("Failed", error + ", " + uri);
-                    callbackFailed(error);
-                });
-        } else {
-            request
-                .get(uri)
-                .query(paramArray)
-                .use(this.throttle.plugin(uri))
-                .then(function(response) {
-                    Nicehash.logger("Success", method + " in " + ((new Date()).getTime() / 1000 - startAt).toFixed(2) + "s");
-                    callbackSuccess(response["body"]);
-                })
-                .catch(function(error) {
-                    Nicehash.logger("Failed", error + ", " + uri);
-                    callbackFailed(error);
-                });
-        }
+            let uri = "http://" + this.baseUri + ":" + this.port + "/" + method;
+            if (throttle > 0) {
+                if (Nicehash.getUnixTimeStamp() - this.lastSentRequestAt < throttle) {
+                    Nicehash.logger("Throttled request");
 
-        Nicehash.logger("Outgoing", (function() {
-            let fullUrl = uri;
-            let counter = 0;
-            for (let i in paramArray) {
-                if (counter === 0) {
-                    fullUrl += "?";
+                    reject({
+                        error: "Request too frequently.",
+                        comment: "Your request will be queued unless we got more requests before throttle released."
+                    });
+
+                    // discard previous request if exist
+                    if (this.pendingRequest.hasOwnProperty("timer")) {
+                        clearTimeout(this.pendingRequest.timer);
+                    }
+
+                    // overwrite previous request and set timer
+                    this.pendingRequest = {
+                        method: method,
+                        paramArray: paramArray,
+                        throttle: throttle
+                    };
+
+                    console.log(this.pendingRequest);
+
+                    // query this request
+                    this.pendingRequest.timer = setTimeout(() => {
+                        this.httpRequest(
+                            this.pendingRequest.method,
+                            this.pendingRequest.paramArray,
+                            this.pendingRequest.throttle
+                        );
+                    }, (this.lastSentRequestAt + throttle - Nicehash.getUnixTimeStamp()) * 1000);
                 } else {
-                    fullUrl += "&";
+                    this.lastSentRequestAt = Nicehash.getUnixTimeStamp();
+                    // discard previous request if exist
+                    if (this.pendingRequest.hasOwnProperty("timer")) {
+                        clearTimeout(this.pendingRequest.timer);
+                    }
+                    this.pendingRequest = {};
+
+                    request
+                        .get(uri)
+                        .query(paramArray)
+                        .then(function(response) {
+                            Nicehash.logger("Success", method);
+                            resolve(response["body"]);
+                        })
+                        .catch(function(error) {
+                            Nicehash.logger("Failed", error + ", " + uri);
+                            reject(error);
+                        });
                 }
-                if (paramArray.hasOwnProperty(i)) {
-                    fullUrl += i + "=" + paramArray[i];
-                }
-                counter++;
+            } else {
+                request
+                    .get(uri)
+                    .query(paramArray)
+                    .use(this.throttle.plugin(uri))
+                    .then(function(response) {
+                        Nicehash.logger("Success", method + " in " + ((new Date()).getTime() / 1000 - startAt).toFixed(2) + "s");
+                        resolve(response["body"]);
+                    })
+                    .catch(function(error) {
+                        Nicehash.logger("Failed", error + ", " + uri);
+                        reject(error);
+                    });
             }
-            return fullUrl;
-        }()));
+
+            Nicehash.logger("Outgoing", (function() {
+                let fullUrl = uri;
+                let counter = 0;
+                for (let i in paramArray) {
+                    if (counter === 0) {
+                        fullUrl += "?";
+                    } else {
+                        fullUrl += "&";
+                    }
+                    if (paramArray.hasOwnProperty(i)) {
+                        fullUrl += i + "=" + paramArray[i];
+                    }
+                    counter++;
+                }
+                return fullUrl;
+            }()));
+        });
     }
 
     static logger(type, log) {

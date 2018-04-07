@@ -15,6 +15,7 @@
 
     import Nicehash from "../../library/nicehash";
     import * as Cookies from "es-cookie";
+    import util from "../../library/util";
 
     export default {
         components: {
@@ -66,30 +67,12 @@
             this.nicehash.throttleMode();
         },
         methods: {
-            onUserInput: function(input) {
+            onUserInput: async function(input) {
                 input = input["address"];
-                if (
-                    (input.length === 34 && input.slice(0, 1) === "1") ||
-                    (input.length === 34 && input.slice(0, 1) === "3") ||
-                    (input.length === 42 && input.slice(0, 3) === "bc1")
-                ) {
-                    this.nicehash.isValidAddress(input,
-                        (response) => {
-                            this.dialog.isValid = response;
-                        },
-                        () => {
-                            this.dialog.isValid = "unknown";
-                        }
-                    );
-                } else if (input.length === 0) {
-                    this.dialog.isValid = "unknown";
-                } else {
-                    // Question
-                    // It works but raised a weak warning:
-                    // Assigned expression type string is not assignable to type string
-                    // Have no idea why.
-                    this.dialog.isValid = "false";
-                }
+                util.checkAddress(input)
+                    .then(response => {
+                        this.dialog.isValid = response;
+                    });
             },
             onUserSetupAddress: function(input) {
                 Cookies.set("address", input["address"]);

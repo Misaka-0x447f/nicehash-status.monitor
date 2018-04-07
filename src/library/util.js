@@ -58,5 +58,27 @@ export default {
             this.arcPath(centerX, centerY, r, start, duration),
             "L", centerX, centerY
         ].join(" ");
+    },
+    checkAddress: async function(addr) {
+        return new Promise(resolve => {
+            if (
+                typeof (addr) === "string" && addr.hasOwnProperty("length") &&
+                (
+                    (addr.length === 34 && addr.slice(0, 1) === "1") ||
+                    (addr.length === 34 && addr.slice(0, 1) === "3") ||
+                    (addr.length === 42 && addr.slice(0, 3) === "bc1")
+                )
+            ) {
+                this.nicehash.isValidAddress(addr)
+                    .then(response => {
+                        resolve(response);
+                    })
+                    .catch(() => {
+                        resolve("unknown");
+                    });
+            } else {
+                resolve("false");
+            }
+        });
     }
 };

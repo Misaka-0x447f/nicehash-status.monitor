@@ -175,37 +175,23 @@
             // continues after cookie checked.
         },
         methods: {
-            checkCookie: function() {
-                let addr = Cookies.get("address");
-                if (
-                    typeof (addr) === "string" && addr.hasOwnProperty("length") &&
-                    (
-                        (addr.length === 34 && addr.slice(0, 1) === "1") ||
-                        (addr.length === 34 && addr.slice(0, 1) === "3") ||
-                        (addr.length === 42 && addr.slice(0, 3) === "bc1")
-                    )
-                ) {
-                    this.nicehash.isValidAddress(addr,
-                        (response) => {
-                            if (response !== "true") {
-                                this.$router.push("/setup");
-                            } else {
-                                this.nicehash.setAddress(Cookies.get("address"));
-                                this.runAsyncQuery();
-                                setInterval(this.runAsyncQuery, 60000);
-                            }
-                        },
-                        () => {
-                            this.checkCookie();
-                        }
-                    );
-                } else {
-                    this.$router.push("/setup");
-                }
-
+            checkCookie: async function() {
                 if (typeof Cookies.get("key") === "string") {
+                    // key set. total balance is available.
                     this.totalBalance = "----";
                 }
+
+                let addr = Cookies.get("address");
+                await util.checkAddress()
+                    .then(response => {
+                        if (response === "true") {
+                            this.nicehash.setAddress(addr);
+                            this.runAsyncQuery();
+                            setInterval(this.runAsyncQuery, 60000);
+                        } else {
+                            this.$router.push("/setup");
+                        }
+                    });
             },
             setStyle: function() {
                 let panel = this.$el.querySelector(".panel");
@@ -236,7 +222,7 @@
                     this.panelSize = 400;
                 }
             },
-            runAsyncQuery: function() {
+            runAsyncQuery: async function() {
                 // comes from stat
                 this.mass = {
                     "init": 1,
@@ -258,6 +244,24 @@
                  *   statsProviderWorker
                  *  balance
                  */
+
+                try {
+                    // priceBTC
+                    {
+                        this.bitcoinPrice =
+                            await this.nicehash.getPriceBitcoin()["result"]["data"]["amount"];
+                        this.progress += this.mass.priceBTC;
+                    }
+                    {
+                        this.bitcoinPriceCNY =
+                            await this.nicehash.getPriceBitcoin("CNY")["result"]["data"]["amount"];
+                        this.progress += this.mass.priceBTCCNY;
+                    }
+
+                } catch {
+                    this.progress = this.progressMax;
+                    Nicehash.logger("Failed", "Network communication issues; Will retry in a few seconds.");
+                }
 
                 priceBTCCNY(this);
                 priceBTC(this);

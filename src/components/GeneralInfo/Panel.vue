@@ -68,6 +68,7 @@
 
     import Nicehash from "../../library/nicehash";
     import util from "../../library/util";
+    import terminal from "../../library/uni-log";
 
     import SmallMeter from "./SmallMeter";
     import LabelNumber from "./LabelNumber";
@@ -245,23 +246,44 @@
                  *  balance
                  */
 
-                try {
+                Promise.all([
                     // priceBTC
-                    {
+                    Promise.all([
                         this.bitcoinPrice =
-                            await this.nicehash.getPriceBitcoin()["result"]["data"]["amount"];
-                        this.progress += this.mass.priceBTC;
-                    }
-                    {
+                            await this.nicehash.getPriceBitcoin()["result"]["data"]["amount"],
+                        this.progress += this.mass.priceBTC
+                    ]),
+                    // priceBTCCNY
+                    Promise.all([
                         this.bitcoinPriceCNY =
-                            await this.nicehash.getPriceBitcoin("CNY")["result"]["data"]["amount"];
-                        this.progress += this.mass.priceBTCCNY;
-                    }
-
-                } catch {
+                            await this.nicehash.getPriceBitcoin("CNY")["result"]["data"]["amount"],
+                        this.progress += this.mass.priceBTCCNY,
+                        Promise.all([])
+                    ])
+                ]).catch(error => {
                     this.progress = this.progressMax;
-                    Nicehash.logger("Failed", "Network communication issues; Will retry in a few seconds.");
-                }
+                    if (!error.hasOwnProperty("method")) {
+                        throw error;
+                    }
+                    terminal.log("Warning", "Unexpected network query error at method " + error["method"]);
+                    /***
+                     * debug:[
+                     *      0:{
+                     *          name: ...
+                     *          value: ...
+                     *      },
+                     *      1:{
+                     *          ...
+                     *      }
+                     * ]
+                     */
+                    if (error.hasOwnProperty("debug")) {
+                        for (let i of error["debug"]) {
+                            terminal.log("----> " + i["name"]);
+                            terminal.log(i["value"]);
+                        }
+                    }
+                });
 
                 priceBTCCNY(this);
                 priceBTC(this);

@@ -80,5 +80,41 @@ export default {
                 resolve("false");
             }
         });
+    },
+    jsonCheck: function(host, checkList, throwError = true) {
+        /***
+         *  checkList: [
+         *      "attr1",
+         *      "attr2.attr3",
+         *      ...
+         *  ]
+         */
+        if (typeof (host) !== "object") {
+            if (throwError) {
+                throw new Error("Not a valid json");
+            } else {
+                return false;
+            }
+        }
+        for (let i of checkList) {
+            // Here we check every variable provided. If not exist, throw error.
+            let arrays = i.split(".");
+            let workSpace = host;
+            while (arrays.length > 0) {
+                let attr = arrays.shift();
+                if (workSpace.hasOwnProperty(attr)) {
+                    workSpace = workSpace[attr];
+                } else {
+                    if (throwError) {
+                        setTimeout(() => {
+                            console.error("You may want to check this specified object:", host);
+                        }, 10);
+                        throw new ReferenceError(`${i} does not exist in the specified object.`);
+                    } else {
+                        return false;
+                    }
+                }
+            }
+        }
     }
 };

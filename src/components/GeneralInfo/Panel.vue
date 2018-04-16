@@ -68,7 +68,6 @@
 
     import Nicehash from "../../library/nicehash";
     import util from "../../library/util";
-    import terminal from "../../library/uni-log";
 
     import SmallMeter from "./SmallMeter";
     import LabelNumber from "./LabelNumber";
@@ -101,7 +100,15 @@
                 workerListContainer: {
                     workerList: []
                 },
-                algoLib: [], // information of all algorithms.
+                algoLibPromiseServer: {
+                    resolve: undefined,
+                    reject: undefined,
+                    isResolved: false
+                },
+                algoLibPromise: new Promise((resolve, reject) => {
+                    this.algoLibPromiseServer.resolve = resolve;
+                    this.algoLibPromiseServer.reject = reject;
+                }),
                 progress: 0,
                 progressMax: 15
             };
@@ -247,46 +254,52 @@
                  */
 
                 Promise.all([
-                    // priceBTC
-                    Promise.all([
+                    (async() => {
+                        /* bitcoinPrice */
                         this.bitcoinPrice =
-                            await this.nicehash.getPriceBitcoin()["result"]["data"]["amount"],
-                        this.progress += this.mass.priceBTC
-                    ]),
-                    // priceBTCCNY
-                    Promise.all([
+                            await this.nicehash.getPriceBitcoin()["result"]["data"]["amount"];
+                        this.progress += this.mass.priceBTC;
+                    })(),
+                    (async() => {
+                        /* bitcoinPriceCNY */
                         this.bitcoinPriceCNY =
-                            await this.nicehash.getPriceBitcoin("CNY")["result"]["data"]["amount"],
-                        this.progress += this.mass.priceBTCCNY,
-                        Promise.all([])
-                    ])
+                            await this.nicehash.getPriceBitcoin("CNY")["result"]["data"]["amount"];
+                        this.progress += this.mass.priceBTCCNY;
+
+                        (async() => {
+                            /* getProvider */
+                            let response =
+                                await this.nicehash.getProvider();
+                            this.progress += this.mass.statsProvider;
+                            util.jsonCheck(response, ["result.stats"]);
+                            let stats = response.result.stats;
+                            let unpaidBalanceSum = 0;
+                            for (let i of stats) {
+                                unpaidBalanceSum += parseFloat(i["balance"]);
+                            }
+                            this.unpaidBalance = (unpaidBalanceSum * this.bitcoinPriceCNY).toFixed(2);
+                        })();
+
+                        (async() => {
+                            /* getProviderEx */
+                            let response =
+                                await this.nicehash.getProviderEx();
+                            this.progress += this.mass.statsProviderEx;
+                            this.getProviderExProcessor(response);
+                            (async() => {
+                                /* getProviderWorker */
+
+                            })();
+                        })();
+
+                        (async() => {
+
+                        })();
+                    })()
                 ]).catch(error => {
                     this.progress = this.progressMax;
-                    if (!error.hasOwnProperty("method")) {
-                        throw error;
-                    }
-                    terminal.log("Warning", "Unexpected network query error at method " + error["method"]);
-                    /***
-                     * debug:[
-                     *      0:{
-                     *          name: ...
-                     *          value: ...
-                     *      },
-                     *      1:{
-                     *          ...
-                     *      }
-                     * ]
-                     */
-                    if (error.hasOwnProperty("debug")) {
-                        for (let i of error["debug"]) {
-                            terminal.log("----> " + i["name"]);
-                            terminal.log(i["value"]);
-                        }
-                    }
+                    throw error;
                 });
-
-                priceBTCCNY(this);
-                priceBTC(this);
 
                 function priceBTCCNY(self) {
                     self.nicehash.getPriceBitcoin(
@@ -301,18 +314,6 @@
                             priceBTCCNY(self);
                         },
                         "CNY"
-                    );
-                }
-
-                function priceBTC(self) {
-                    self.nicehash.getPriceBitcoin(
-                        (response) => {
-                            self.progress += self.mass.priceBTC;
-                            self.bitcoinPrice = parseInt(response["result"]["data"]["amount"]);
-                        },
-                        () => {
-                            priceBTC(self);
-                        }
                     );
                 }
 
@@ -545,6 +546,126 @@
                         }
                     );
                 }
+            },
+            getProviderExProcessor: function(response) {
+                util.jsonCheck(response, ["result.current"]);
+                let currentStatus = response.result.current;
+                let currentProf = 0;
+                let algoLib = {};
+
+                if (this.algoLibPromiseServer.isResolved) {
+                    // parse/update algoLib
+                    for (let i of currentStatus) {
+                        algoLib[i["algo"]] = {
+                            "name": i.name,
+                            "profitability": i.profitability,
+                            "suffix": i.suffix
+                        };
+                        let currentAlgoSpeedSum = 0;
+                        for (let j of i.data) {
+                            // any accepted speed?
+                            if (j.hasOwnProperty("a")) {
+                                currentAlgoSpeedSum += j.a;
+                            }
+                        }
+                        currentProf += currentAlgoSpeedSum * i.profitability;
+                    }
+                    this.currentProf = parseFloat((currentProf * this.bitcoinPriceCNY).toFixed(2));
+
+                    // AlgoLib is ready.
+                    this.algoLibPromiseServer.resolve(algoLib);
+                    this.algoLibPromiseServer.isResolved = true;
+                }
+
+                // Next, we are going to process past data.
+                /*****************************************/
+
+                let pastProf1 = []; // Today's prof
+                let pastReje1 = [];
+                for (let i = util.getUnixTimeStamp(); i > util.getUnixTimeStamp(86400); i -= 300) {
+                    let query = this.getProviderExPastProfitabilityProcessor(response, i);
+                    pastProf1.push(query.accepted * this.bitcoinPriceCNY);
+                    pastReje1.push(query.rejected * this.bitcoinPriceCNY);
+                }
+
+                let pastProf2 = []; // Yesterday's prof
+                for (let i = util.getUnixTimeStamp(86400); i > util.getUnixTimeStamp(86400 * 2); i -= 300) {
+                    pastProf2.push(this.getProviderExPastProfitabilityProcessor(response, i)["accepted"] * this.bitcoinPriceCNY);
+                }
+
+                let profDiff = parseFloat(
+                    (
+                        (
+                            (util.sum(pastProf1) / 288) / (util.sum(pastProf2) / 288) - 1
+                        ) * 100
+                    ).toFixed(2)
+                );
+
+                this.profDiff = (util.isNumeric(profDiff) ? profDiff : "  N/A");
+                this.averageProf = (util.sum(pastProf1) / (86400 / 300) * 30).toFixed(2);
+                this.efficiency = parseFloat(
+                    (
+                        util.sum(pastProf1) / (util.sum(pastProf1) + util.sum(pastReje1)) * 100
+                    ).toFixed(2)
+                );
+            },
+            getProviderExPastProfitabilityProcessor: async function(response, unixTimeStamp) {
+                /**
+                 *
+                 * @Return
+                 * (Object).accepted - in bitcoins
+                 * (Object).rejected
+                 *
+                 * TimeStamp can be safely defined as any integer here.
+                 *
+                 * ↓ this works for me (to disable undefined alert)
+                 * @property {object} response
+                 * @property {object} response.result
+                 * @property {object} response.current
+                 * @property {object[]} response.past
+                 */
+                let past = response.result.past;
+
+                let prof = 0;
+                let reject = 0;
+                for (let i of past) {
+                    /**
+                     * fixed undefined "i.algo"
+                     * @property {object[]} i
+                     * @property {string} i.algo
+                     */
+                    // single algo
+                    for (let j of i.data) {
+                        // single timestamp
+                        if (j[0] === Math.floor(unixTimeStamp / 300)) {
+                            let value = j[1];
+                            if (j[1].hasOwnProperty("a")) {
+                                let singlePointProf = (await this.algoLibPromise())[i.algo].profitability * parseFloat(j[1].a);
+                                if (util.isNumeric(singlePointProf)) {
+                                    prof += singlePointProf;
+                                }
+                                delete value.a;
+                            }
+                            value = Object.values(value);
+                            if (Object.keys(value).length > 0) {
+                                for (let k of value) {
+                                    let singleReject = self.algoLib[i.algo].profitability * parseFloat(k);
+                                    if (util.isNumeric(singleReject)) {
+                                        reject += singleReject;
+                                    }
+                                }
+                            }
+                            break;
+                        }
+                    }
+                }
+                return {
+                    "accepted": prof,
+                    "rejected": reject
+                };
+            },
+            getProviderWorkerProcessor: function() {
+
             }
         }
     };

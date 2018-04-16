@@ -81,6 +81,9 @@ export default {
             }
         });
     },
+    getUnixTimeStamp: function(offset = 0) {
+        return Math.round((new Date()).getTime() / 1000 - offset);
+    },
     jsonCheck: function(host, checkList, throwError = true) {
         /***
          *  checkList: [

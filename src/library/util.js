@@ -1,3 +1,5 @@
+import Nicehash from "../library/nicehash";
+
 export default {
     sum: function(array) {
         if (!Array.isArray(array)) {
@@ -69,7 +71,8 @@ export default {
                     (addr.length === 42 && addr.slice(0, 3) === "bc1")
                 )
             ) {
-                this.nicehash.isValidAddress(addr)
+                let nicehash = new Nicehash();
+                nicehash.isValidAddress(addr)
                     .then(response => {
                         resolve(response);
                     })

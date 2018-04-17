@@ -12,9 +12,9 @@ export default class terminal {
         }
 
         if (["string", "number"].includes(typeof (log))) {
-            terminal.lastStringLog += log;
+            terminal.lastStringLog += ": " + log;
         } else {
-            throw "terminal.log: type of argument \"log\" must be string or number.";
+            throw new Error("terminal.log: type of argument \"log\" must be string or number.");
         }
 
         let style = "";
@@ -27,6 +27,8 @@ export default class terminal {
         }
 
         console.log(`%c${terminal.lastStringLog}`, style);
-        rawData ? console.log(rawData) : {};
+        if (rawData) {
+            console.log(rawData);
+        }
     }
 }

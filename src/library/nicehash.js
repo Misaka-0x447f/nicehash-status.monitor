@@ -56,17 +56,17 @@ export default class Nicehash {
         /**
          * This method will callback with a boolean which indicates if it is a valid address.
          */
-        return new Promise((resolve, reject) => {
+        return new Promise(resolve => {
             this.httpRequest("stats.provider", {addr: address}, this.fastThrottle)
-                .then(function() {
+                .then((response) => {
                     if (response["result"].hasOwnProperty("error") === true) {
                         resolve("false");
                     } else {
                         resolve("true");
                     }
                 })
-                .catch(function() {
-                    reject("unknown");
+                .catch(() => {
+                    resolve("unknown");
                 });
         });
     }
@@ -109,7 +109,7 @@ export default class Nicehash {
                 if (Nicehash.getUnixTimeStamp() - this.lastSentRequestAt < throttle) {
                     Nicehash.logger("Throttled request");
 
-                    reject({
+                    resolve({
                         error: "Request too frequently.",
                         comment: "Your request will be queued unless we got more requests before throttle released."
                     });

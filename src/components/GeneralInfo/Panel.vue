@@ -85,7 +85,7 @@
         },
         name: "panel",
         data: function() {
-            return {
+            let data = {
                 nicehash: new Nicehash(),
                 panelSize: 400,
                 currentProf: "----",
@@ -101,17 +101,18 @@
                     workerList: []
                 },
                 algoLibPromiseServer: {
-                    resolve: undefined,
-                    reject: undefined,
+                    resolve: () => {},
+                    reject: () => {},
                     isResolved: false
                 },
-                algoLibPromise: new Promise((resolve, reject) => {
-                    this.algoLibPromiseServer.resolve = resolve;
-                    this.algoLibPromiseServer.reject = reject;
-                }),
                 progress: 0,
                 progressMax: 15
             };
+            data.algoLibPromise = new Promise((resolve, reject) => {
+                data.algoLibPromiseServer.resolve = resolve;
+                data.algoLibPromiseServer.reject = reject;
+            });
+            return data;
         },
         computed: {
             currentProfIndicator: function() {
@@ -190,16 +191,13 @@
                 }
 
                 let addr = Cookies.get("address");
-                await util.checkAddress()
-                    .then(response => {
-                        if (response === "true") {
-                            this.nicehash.setAddress(addr);
-                            this.runAsyncQuery();
-                            setInterval(this.runAsyncQuery, 60000);
-                        } else {
-                            this.$router.push("/setup");
-                        }
-                    });
+                if ((await util.checkAddress(addr)) === "true") {
+                    this.nicehash.setAddress(addr);
+                    this.runAsyncQuery();
+                    setInterval(this.runAsyncQuery, 60000);
+                } else {
+                    this.$router.push("/setup");
+                }
             },
             setStyle: function() {
                 let panel = this.$el.querySelector(".panel");
@@ -257,13 +255,13 @@
                     (async() => {
                         /* bitcoinPrice */
                         this.bitcoinPrice =
-                            await this.nicehash.getPriceBitcoin()["result"]["data"]["amount"];
+                            (await this.nicehash.getPriceBitcoin()).result.data.amount;
                         this.progress += this.mass.priceBTC;
                     })(),
                     (async() => {
                         /* bitcoinPriceCNY */
                         this.bitcoinPriceCNY =
-                            await this.nicehash.getPriceBitcoin("CNY")["result"]["data"]["amount"];
+                            (await this.nicehash.getPriceBitcoin("CNY")).result.data.amount;
                         this.progress += this.mass.priceBTCCNY;
 
                         (async() => {
@@ -288,264 +286,37 @@
                             this.getProviderExProcessor(response);
                             (async() => {
                                 /* getProviderWorker */
-
+                                let response =
+                                    await this.nicehash.getProviderWorkers();
+                                this.progress += this.mass.statsProviderWorkers;
+                                this.getProviderWorkerProcessor(response);
                             })();
                         })();
 
                         (async() => {
-
+                            /* getBalance */
+                            let key = Cookies.get("key");
+                            if (typeof key !== "string") {
+                                return false;
+                            }
+                            let response =
+                                await this.nicehash.getBalance(key);
+                            this.progress += this.mass.balance;
+                            let value =
+                                (
+                                    parseFloat(response["result"]["balance_pending"]) * this.bitcoinPriceCNY +
+                                    parseFloat(response["result"]["balance_confirmed"]) * this.bitcoinPriceCNY
+                                ).toFixed(2)
+                            ;
+                            if (util.isNumeric(value)) {
+                                this.totalBalance = value;
+                            }
                         })();
                     })()
                 ]).catch(error => {
                     this.progress = this.progressMax;
                     throw error;
                 });
-
-                function priceBTCCNY(self) {
-                    self.nicehash.getPriceBitcoin(
-                        (response) => {
-                            self.progress += self.mass.priceBTCCNY;
-                            self.bitcoinPriceCNY = response["result"]["data"]["amount"];
-                            getProvider(self);
-                            getProviderEx(self);
-                            getBalance(self);
-                        },
-                        () => {
-                            priceBTCCNY(self);
-                        },
-                        "CNY"
-                    );
-                }
-
-                function getProvider(self) {
-                    self.nicehash.getProvider(
-                        (response) => {
-                            self.progress += self.mass.statsProvider;
-                            let stats = response.result.stats;
-                            let unpaidBalanceTotal = 0;
-                            if (typeof (stats) !== "object") {
-                                Nicehash.logger("Failed", "provider data invalid.");
-                                console.log("----> response.result.stats");
-                                console.log(stats);
-                                console.log("----> response");
-                                console.log(response);
-                                return false;
-                            }
-                            for (let i of stats) {
-                                unpaidBalanceTotal += parseFloat(i["balance"]);
-                            }
-                            self.unpaidBalance = (unpaidBalanceTotal * self.bitcoinPriceCNY).toFixed(2);
-                        },
-                        () => {
-                            getProvider(self);
-                        }
-                    );
-                }
-
-                function getProviderEx(self) {
-                    self.nicehash.getProviderEx(
-                        (response) => {
-                            self.progress += self.mass.statsProviderEx;
-                            getProviderExProcessor(response, self);
-                        },
-                        () => {
-                            getProviderEx(self);
-                        }
-                    );
-                }
-
-                function getProviderExProcessor(response, self) {
-                    let currentStatus = response.result["current"];
-                    let currentProf = 0;
-
-                    if (typeof (currentStatus) !== "object") {
-                        Nicehash.logger("Failed", "providerEx data invalid.");
-                        console.log("----> response.result.currentStatus");
-                        console.log(currentStatus);
-                        console.log("----> response");
-                        console.log(response);
-                        return false;
-                    }
-
-                    for (let i of currentStatus) {
-                        self.algoLib[i["algo"]] = {
-                            "name": i["name"],
-                            "profitability": i["profitability"],
-                            "suffix": i["suffix"]
-                        };
-                        let currentAlgoSpeedSum = 0;
-                        for (let j of i.data) {
-                            if (j.hasOwnProperty("a")) {
-                                currentAlgoSpeedSum += j.a;
-                            }
-                        }
-                        currentProf += currentAlgoSpeedSum * i["profitability"];
-                    }
-                    self.currentProf = parseFloat((currentProf * self.bitcoinPriceCNY).toFixed(2));
-
-                    // algoLib initialized; querying worker.
-                    getProviderWorker(self);
-
-                    /*************************************/
-
-                    let bitcoinPriceCNY = self.bitcoinPriceCNY;
-
-                    let pastProf1 = [];
-                    let pastReje1 = [];
-                    for (let i = Nicehash.getUnixTimeStamp(); i > Nicehash.getUnixTimeStamp(86400); i -= 300) {
-                        let query = getPastProfitability(self, response, i);
-                        pastProf1.push(query["accepted"] * bitcoinPriceCNY);
-                        pastReje1.push(query["rejected"] * bitcoinPriceCNY);
-                    }
-                    let pastProf2 = [];
-                    for (let i = Nicehash.getUnixTimeStamp(86400); i > Nicehash.getUnixTimeStamp(86400 * 2); i -= 300) {
-                        pastProf2.push(getPastProfitability(self, response, i)["accepted"] * bitcoinPriceCNY);
-                    }
-
-                    // TODO: I think that there's nothing wrong now. But still need test.
-                    self.averageProf = (util.sum(pastProf1) / 288 * 30).toFixed(2);
-                    let profDiff = parseFloat((((util.sum(pastProf1) / 288) / (util.sum(pastProf2) / 288) - 1) * 100).toFixed(2));
-                    if (util.isNumeric(profDiff)) {
-                        self.profDiff = profDiff;
-                    } else {
-                        self.profDiff = "  N/A";
-                    }
-
-                    self.efficiency = parseFloat((util.sum(pastProf1) / (util.sum(pastProf1) + util.sum(pastReje1)) * 100).toFixed(2));
-                }
-
-                function getPastProfitability(self, source, unixTimeStamp) {
-                    // unit: bitcoin
-                    let current = source.result["current"];
-
-                    if (typeof (current) !== "object") {
-                        Nicehash.logger("Failed", "providerEx/PastProfitability data invalid.");
-                        console.log("----> response.result.current");
-                        console.log(current);
-                        console.log("----> response");
-                        console.log(source);
-                        return false;
-                    }
-
-                    let past = source.result["past"];
-                    let prof = 0;
-                    let reject = 0;
-                    for (let i of past) {
-                        // single algo
-                        for (let j of i.data) {
-                            // single timestamp
-                            if (j[0] === Math.floor(unixTimeStamp / 300)) {
-                                let value = j[1];
-                                if (j[1].hasOwnProperty(["a"])) {
-                                    let singleProf = self.algoLib[i["algo"]]["profitability"] * parseFloat(j[1]["a"]);
-                                    util.isNumeric(singleProf) ? prof += singleProf : prof += 0;
-                                    delete value["a"];
-                                }
-                                value = Object.values(value);
-                                if (Object.keys(value).length > 0) {
-                                    for (let k of value) {
-                                        let singleReject = self.algoLib[i["algo"]]["profitability"] * parseFloat(k);
-                                        util.isNumeric(singleReject) ? reject += singleReject : reject += 0;
-                                    }
-                                }
-                                break;
-                            }
-                        }
-                    }
-                    return {
-                        "accepted": prof,
-                        "rejected": reject
-                    };
-                }
-
-                function getProviderWorker(self) {
-                    self.nicehash.getProviderWorkers(
-                        (response) => {
-                            self.progress += self.mass.statsProviderWorkers;
-                            // worker count
-                            let workers = response.result.workers;
-                            let workerSet = [];
-
-                            if (typeof (workers) !== "object") {
-                                Nicehash.logger("Failed", "worker data invalid.");
-                                console.log("----> response.result.workers");
-                                console.log(workers);
-                                console.log("----> response");
-                                console.log(response);
-                                return false;
-                            }
-
-                            for (let i of workers) {
-                                if (workerSet.indexOf(i[0]) === -1) {
-                                    workerSet = workerSet.concat([i[0]]);
-                                }
-                            }
-                            self.activeWorker = workerSet.length;
-
-                            // worker list
-                            workerSet = [];
-                            let counter = 0;
-                            for (let i of workers) {
-                                let accepted = 0;
-                                let rejected = 0;
-                                let speedObject = i[1];
-                                if (speedObject.hasOwnProperty("a")) {
-                                    accepted = parseFloat(speedObject["a"]);
-                                    delete speedObject["a"];
-                                }
-
-                                for (let j in speedObject) {
-                                    if (speedObject.hasOwnProperty(j)) {
-                                        rejected += parseFloat(speedObject[j]);
-                                    }
-                                }
-
-                                workerSet = workerSet.concat({
-                                    key: counter,
-                                    workerName: i[0],
-                                    algorithm: self.algoLib[i[6]]["name"],
-                                    accepted: accepted,
-                                    rejected: rejected,
-                                    suffix: self.algoLib[i[6]]["suffix"]
-                                });
-                                counter++;
-                            }
-
-                            workerSet.sort(function(a, b) {
-                                return a.workerName > b.workerName;
-                            });
-                            self.workerListContainer.workerList = workerSet;
-                        },
-                        () => {
-                            getProviderWorker(self);
-                        }
-                    );
-                }
-
-                function getBalance(self) {
-                    let key = Cookies.get("key");
-                    if (typeof key !== "string") {
-                        return false;
-                    }
-                    self.nicehash.getBalance(
-                        key,
-                        (response) => {
-                            self.progress += self.mass.balance;
-                            let value =
-                                (
-                                    parseFloat(response["result"]["balance_pending"]) * self.bitcoinPriceCNY +
-                                    parseFloat(response["result"]["balance_confirmed"]) * self.bitcoinPriceCNY
-                                ).toFixed(2)
-                            ;
-                            if (util.isNumeric(value)) {
-                                self.totalBalance = value;
-                            }
-                        },
-                        () => {
-                            getBalance(self);
-                        }
-                    );
-                }
             },
             getProviderExProcessor: function(response) {
                 util.jsonCheck(response, ["result.current"]);
@@ -553,7 +324,7 @@
                 let currentProf = 0;
                 let algoLib = {};
 
-                if (this.algoLibPromiseServer.isResolved) {
+                if (!this.algoLibPromiseServer.isResolved) {
                     // parse/update algoLib
                     for (let i of currentStatus) {
                         algoLib[i["algo"]] = {
@@ -640,7 +411,7 @@
                         if (j[0] === Math.floor(unixTimeStamp / 300)) {
                             let value = j[1];
                             if (j[1].hasOwnProperty("a")) {
-                                let singlePointProf = (await this.algoLibPromise())[i.algo].profitability * parseFloat(j[1].a);
+                                let singlePointProf = (await this.algoLibPromise)[i.algo].profitability * parseFloat(j[1].a);
                                 if (util.isNumeric(singlePointProf)) {
                                     prof += singlePointProf;
                                 }
@@ -649,7 +420,7 @@
                             value = Object.values(value);
                             if (Object.keys(value).length > 0) {
                                 for (let k of value) {
-                                    let singleReject = self.algoLib[i.algo].profitability * parseFloat(k);
+                                    let singleReject = (await this.algoLibPromise)[i.algo].profitability * parseFloat(k);
                                     if (util.isNumeric(singleReject)) {
                                         reject += singleReject;
                                     }
@@ -664,8 +435,47 @@
                     "rejected": reject
                 };
             },
-            getProviderWorkerProcessor: function() {
+            getProviderWorkerProcessor: async function(response) {
+                util.jsonCheck(response, ["result.workers"]);
+                let workers = response.result.workers;
+                let workerSet = [];
 
+                // merging count: counting how many unique workers
+                for (let i of workers) {
+                    if (workerSet.indexOf(i[0]) === -1) {
+                        workerSet = workerSet.concat(i[0]);
+                    }
+                }
+                this.activeWorker = workerSet.length;
+
+                // listing: list all workers including who using same name
+                workerSet = [];
+                for (let i of workers) {
+                    let accepted = 0;
+                    let rejected = 0;
+                    let speedObject = i[1];
+
+                    if (speedObject.hasOwnProperty("a")) {
+                        accepted = parseFloat(speedObject.a);
+                        delete speedObject.a;
+                    }
+
+                    for (let j in speedObject) {
+                        if (speedObject.hasOwnProperty(j)) {
+                            rejected += parseFloat(speedObject[j]);
+                        }
+                    }
+                    workerSet = workerSet.concat({
+                        key: workerSet.length,
+                        workerName: i[0],
+                        algorithm: (await this.algoLibPromise)[i[6]].name,
+                        accepted: accepted,
+                        rejected: rejected,
+                        suffix: (await this.algoLibPromise)[i[6]].suffix
+                    });
+                }
+                workerSet.sort();
+                this.workerListContainer.workerList = workerSet;
             }
         }
     };

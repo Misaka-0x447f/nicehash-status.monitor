@@ -239,7 +239,7 @@
                     "statsProviderWorkers": 6.20,
                     "balance": 14.03
                 };
-                this.progress += this.mass.init;
+                this.progress = this.mass.init;
                 this.progressMax = util.sum(this.mass);
 
                 /***
@@ -318,7 +318,7 @@
                     throw error;
                 });
             },
-            getProviderExProcessor: function(response) {
+            getProviderExProcessor: async function(response) {
                 util.jsonCheck(response, ["result.current"]);
                 let currentStatus = response.result.current;
                 let currentProf = 0;
@@ -354,14 +354,14 @@
                 let pastProf1 = []; // Today's prof
                 let pastReje1 = [];
                 for (let i = util.getUnixTimeStamp(); i > util.getUnixTimeStamp(86400); i -= 300) {
-                    let query = this.getProviderExPastProfitabilityProcessor(response, i);
+                    let query = await this.getProviderExPastProfitabilityProcessor(response, i);
                     pastProf1.push(query.accepted * this.bitcoinPriceCNY);
                     pastReje1.push(query.rejected * this.bitcoinPriceCNY);
                 }
 
                 let pastProf2 = []; // Yesterday's prof
                 for (let i = util.getUnixTimeStamp(86400); i > util.getUnixTimeStamp(86400 * 2); i -= 300) {
-                    pastProf2.push(this.getProviderExPastProfitabilityProcessor(response, i)["accepted"] * this.bitcoinPriceCNY);
+                    pastProf2.push((await this.getProviderExPastProfitabilityProcessor(response, i))["accepted"] * this.bitcoinPriceCNY);
                 }
 
                 let profDiff = parseFloat(

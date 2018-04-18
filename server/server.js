@@ -91,6 +91,8 @@ const server = http.createServer((req, res) => {
 
 server.listen(port);
 
+console.log("Server ready and listening port " + port);
+
 function nicehashRequest(hostRes, method, para = undefined) {
     let address = "https://api.nicehash.com/api?method=" + method;
     for (let i of para) {

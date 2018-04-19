@@ -4,9 +4,9 @@
             <path :d="borderDraw" stroke="wheat" :stroke-width="borderWidth" opacity="0.66"></path>
             <path :d="getPath()"
                   fill="wheat" opacity="0.33"></path>
-            <text :x="center * 2" :y="center * 0.95" :style="{'font-size': textSize1}">{{ stringifyValue(value) }}
+            <text class="theme-color" :x="center * 2" :y="center * 0.95" :style="{'font-size': textSize1}">{{ stringifyValue(value) }}
             </text>
-            <text :x="center * 2" :y="center * 0.95 - textSize1" :style="{'font-size': textSize2}">{{ labelText }}
+            <text class="theme-color" :x="center * 2" :y="center * 0.95 - textSize1" :style="{'font-size': textSize2}">{{ labelText }}
             </text>
         </svg>
     </div>
@@ -146,13 +146,7 @@
 </script>
 
 <style lang="less" scoped>
-    @theme-color-main: wheat;
-    @theme-color-main-fade: rgba(245, 222, 179, 0.67);
-    @theme-color-main-fade-2: rgba(245, 222, 179, 0.33);
-    @theme-color-main-fade-3: rgba(245, 222, 179, 0.1);
-
     text {
-        fill: @theme-color-main;
         font-size: 16px;
         text-anchor: end;
     }

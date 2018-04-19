@@ -474,7 +474,7 @@
                         suffix: (await this.algoLibPromise)[i[6]].suffix
                     });
                 }
-                workerSet.sort();
+                workerSet.sort(function(a, b) { return a.workerName.localeCompare(b.workerName); });
                 this.workerListContainer.workerList = workerSet;
             }
         }
@@ -483,8 +483,6 @@
 
 <style lang="less" scoped>
     @theme-color-main: wheat;
-    @theme-color-main-fade: rgba(245, 222, 179, 0.67);
-    @theme-color-main-fade-2: rgba(245, 222, 179, 0.33);
 
     .spinner {
         position: fixed;

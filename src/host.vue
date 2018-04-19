@@ -17,6 +17,7 @@
     @theme-color-main: wheat;
     @theme-color-main-fade: rgba(245, 222, 179, 0.67);
     @theme-color-main-fade-2: rgba(245, 222, 179, 0.33);
+    @theme-color-main-fade-3: rgba(245, 222, 179, 0.1);
 
     #container {
         display: flex;

@@ -44,13 +44,13 @@
             </div>
             <console class="console"></console>
         </div>
-        <md-progress-bar
-            md-mode="determinate"
-            :md-value="progress / progressMax * 100"
-            v-if="progress < progressMax"
-            class="progress-bar"
+        <progress-bar
+            :progress="progress / progressMax"
+            :color="'#F5DEB3'"
+            :isError="this.progressOnError"
+            :errorColor="'#f80'"
         >
-        </md-progress-bar>
+        </progress-bar>
         <md-progress-spinner
             md-mode="indeterminate"
             :md-diameter="parseInt('20')"
@@ -73,11 +73,13 @@
     import LabelNumber from "./LabelNumber";
     import Console from "./Console";
     import Worker from "./Worker";
+    import ProgressBar from "../ProgressBar";
 
     import "vue-material/dist/vue-material.min.css";
 
     export default {
         components: {
+            ProgressBar,
             Worker,
             Console,
             LabelNumber,
@@ -101,12 +103,15 @@
                     workerList: []
                 },
                 algoLibPromiseServer: {
-                    resolve: () => {},
-                    reject: () => {},
+                    resolve: () => {
+                    },
+                    reject: () => {
+                    },
                     isResolved: false
                 },
                 progress: 0,
-                progressMax: 15
+                progressMax: 15,
+                progressOnError: false
             };
             data.algoLibPromise = new Promise((resolve, reject) => {
                 data.algoLibPromiseServer.resolve = resolve;
@@ -241,6 +246,7 @@
                 };
                 this.progress = this.mass.init;
                 this.progressMax = util.sum(this.mass);
+                this.progressOnError = false;
 
                 /***
                  * priceBTC
@@ -315,6 +321,7 @@
                     })()
                 ]).catch(error => {
                     this.progress = this.progressMax;
+                    this.progressOnError = true;
                     throw error;
                 });
             },
@@ -474,7 +481,9 @@
                         suffix: (await this.algoLibPromise)[i[6]].suffix
                     });
                 }
-                workerSet.sort(function(a, b) { return a.workerName.localeCompare(b.workerName); });
+                workerSet.sort(function(a, b) {
+                    return a.workerName.localeCompare(b.workerName);
+                });
                 this.workerListContainer.workerList = workerSet;
             }
         }
@@ -490,19 +499,8 @@
         left: 6px;
     }
 
-    .progress-bar {
-        position: fixed;
-        top: 0;
-        width: 100%;
-        height: 3px;
-    }
-
     .spinner /deep/ .md-progress-spinner-draw {
         stroke: @theme-color-main;
-    }
-
-    .progress-bar /deep/ .md-progress-bar-fill {
-        background-color: @theme-color-main;
     }
 
     .panel-component-root, .panel.flex {

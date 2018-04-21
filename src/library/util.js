@@ -122,5 +122,9 @@ export default {
                 }
             }
         }
+    },
+    flushCss: function(element) {
+        /* eslint-disable no-unused-expressions */
+        element.offsetHeight;
     }
 };

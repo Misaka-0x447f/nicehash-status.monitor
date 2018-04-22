@@ -146,12 +146,16 @@
 </script>
 
 <style lang="less" scoped>
+    .small-meter-component-root {
+        transition: opacity ease-out 1s;
+    }
+
     text {
         font-size: 16px;
         text-anchor: end;
     }
 
     .fade {
-        opacity: 0.3;
+        opacity: 0.2;
     }
 </style>

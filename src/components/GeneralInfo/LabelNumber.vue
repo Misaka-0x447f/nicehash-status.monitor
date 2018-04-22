@@ -75,6 +75,7 @@
     .label-number-component-root {
         display: block;
         min-width: 10em;
+        transition: opacity ease-out 1s;
     }
 
     .digital {
@@ -91,6 +92,6 @@
     }
 
     .fade {
-        opacity: 0.3;
+        opacity: 0.2;
     }
 </style>

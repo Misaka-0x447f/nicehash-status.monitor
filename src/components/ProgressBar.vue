@@ -6,7 +6,7 @@
             :class="{noTransition: noTransition}"
             :style="{
                 'background-color': isError ? errorColor : color,
-                'width': progress < 1 ? progress * 100 + '%' : '300%',
+                'width': progress < 1 ? progress * 100 + '%' : '800%',
                 'opacity': isError || progress < 1 ? '1' : '0'
             }"
         ></div>
@@ -18,12 +18,24 @@
 
     export default {
         name: "ProgressBar",
-        props: [
-            "progress",
-            "color",
-            "isError",
-            "errorColor"
-        ],
+        props: {
+            progress: {
+                default: 0.5,
+                type: Number
+            },
+            color: {
+                default: "#F5DEB3",
+                type: String
+            },
+            isError: {
+                default: false,
+                type: Boolean
+            },
+            errorColor: {
+                default: "#f80",
+                type: String
+            }
+        },
         data: function() {
             return {
                 noTransition: false
@@ -59,9 +71,10 @@
     .bar {
         height: 3px;
         width: 0;
-        transition: width 5s ease-out, opacity 1s;
+        transition: width 5s ease-out, opacity 0.5s;
     }
 
+    /*noinspection ALL*/
     div.noTransition {
         transition: none;
     }

@@ -1,65 +1,67 @@
 <template>
-    <div class="panel-component-root">
-        <div class="panel flex" :style="{fontSize: panelSize / 20 + 'px'}">
-            <div class="panel-1 flex-block">
-                <div class="flex-panel">
-                    <div class="line flex-line">
-                        <label-number
-                            v-bind="currentProfIndicator"
-                        ></label-number>
-                        <label-number
-                            v-bind="averageProfIndicator"
-                        ></label-number>
-                    </div>
-                    <div class="line flex-line">
-                        <label-number
-                            v-bind="unpaidBalanceIndicator"
-                        ></label-number>
-                        <label-number
-                            v-bind="totalBalanceIndicator"
-                        ></label-number>
-                    </div>
-                    <div class="line flex-line">
-                        <label-number
-                            v-bind="bitcoinPriceIndicator"
-                        ></label-number>
-                        <label-number
-                            v-bind="activeWorkerIndicator"
-                        ></label-number>
-                    </div>
-                    <div class="line flex-line">
-                        <small-meter
-                            v-bind="profDiffIndicator"
-                        ></small-meter>
-                        <small-meter
-                            v-bind="efficiencyIndicator"
-                        ></small-meter>
+    <transition name="trans" appear>
+        <div class="panel-component-root">
+            <div class="panel flex" :style="{fontSize: panelSize / 20 + 'px'}">
+                <div class="panel-1 flex-block">
+                    <div class="flex-panel">
+                        <div class="line flex-line">
+                            <label-number
+                                v-bind="currentProfIndicator"
+                            ></label-number>
+                            <label-number
+                                v-bind="averageProfIndicator"
+                            ></label-number>
+                        </div>
+                        <div class="line flex-line">
+                            <label-number
+                                v-bind="unpaidBalanceIndicator"
+                            ></label-number>
+                            <label-number
+                                v-bind="totalBalanceIndicator"
+                            ></label-number>
+                        </div>
+                        <div class="line flex-line">
+                            <label-number
+                                v-bind="bitcoinPriceIndicator"
+                            ></label-number>
+                            <label-number
+                                v-bind="activeWorkerIndicator"
+                            ></label-number>
+                        </div>
+                        <div class="line flex-line">
+                            <small-meter
+                                v-bind="profDiffIndicator"
+                            ></small-meter>
+                            <small-meter
+                                v-bind="efficiencyIndicator"
+                            ></small-meter>
+                        </div>
                     </div>
                 </div>
+                <div class="panel-2 flex-block">
+                    <worker
+                        v-bind="workerListContainer"
+                    ></worker>
+                </div>
+                <console class="console"></console>
             </div>
-            <div class="panel-2 flex-block">
-                <worker
-                    v-bind="workerListContainer"
-                ></worker>
-            </div>
-            <console class="console"></console>
+            <progress-bar
+                :progress="progress / progressMax"
+                :color="'#F5DEB3'"
+                :isError="this.progressOnError"
+                :errorColor="'#f80'"
+            >
+            </progress-bar>
+            <md-progress-spinner
+                md-mode="indeterminate"
+                :md-diameter="parseInt('20')"
+                :md-stroke="parseFloat('2')"
+                v-if="progress < progressMax"
+                class="spinner"
+            >
+            </md-progress-spinner>
         </div>
-        <progress-bar
-            :progress="progress / progressMax"
-            :color="'#F5DEB3'"
-            :isError="this.progressOnError"
-            :errorColor="'#f80'"
-        >
-        </progress-bar>
-        <md-progress-spinner
-            md-mode="indeterminate"
-            :md-diameter="parseInt('20')"
-            :md-stroke="parseFloat('2')"
-            v-if="progress < progressMax"
-            class="spinner"
-        >
-        </md-progress-spinner>
-    </div>
+    </transition>
 </template>
 
 <script>
@@ -492,6 +494,14 @@
 
 <style lang="less" scoped>
     @theme-color-main: wheat;
+
+    .trans-enter-active, .trans-leave-active {
+        transition: opacity ease-out 2s;
+    }
+
+    .trans-enter, .fade-leave-to {
+        opacity: 0;
+    }
 
     .spinner {
         position: fixed;

@@ -42,7 +42,7 @@
         font-size: 0.8em;
     }
 
-    .trans-enter-active, .trans-leave-active {
+    .trans-enter-active, .trans-leave-active, .trans-move {
         transition: all 1s;
     }
 

@@ -2,9 +2,9 @@
     <div class="small-meter-component-root monospaced" :class="{fade: fade}">
         <svg :width="size" :height="size" fill="none">
             <path :d="borderDraw" stroke="wheat" :stroke-width="borderWidth" opacity="0.66"></path>
-            <path :d="getPath()"
+            <path :d="getPath(animatedValue, this.valueMin, this.valueMax)"
                   fill="wheat" opacity="0.33"></path>
-            <text class="theme-color" :x="center * 2" :y="center * 0.95" :style="{'font-size': textSize1}">{{ stringifyValue(value) }}
+            <text class="theme-color" :x="center * 2" :y="center * 0.95" :style="{'font-size': textSize1}">{{ animatedValueLimited }}
             </text>
             <text class="theme-color" :x="center * 2" :y="center * 0.95 - textSize1" :style="{'font-size': textSize2}">{{ labelText }}
             </text>
@@ -47,11 +47,34 @@
         data: function() {
             return {
                 maxFixedCount: 0,
-                fade: false
+                fade: false,
+                animatedValue: this.valueMin,
+                animatedValueLimited: ""
             };
         },
         mounted: function() {
             this.setStyle();
+            setInterval(() => {
+                if (util.isNumeric(this.value)) {
+                    let n = this.value.toString().split(".");
+                    if (n.hasOwnProperty(1)) {
+                        n = n[1].length;
+                    } else {
+                        n = 0;
+                    }
+                    let valueChange =
+                        (this.filterValue(this.value, this.valueMin, this.valueMax) - this.animatedValue) / 10;
+                    this.animatedValue += valueChange;
+                    if (Math.abs(valueChange) < Math.pow(10, -n)) {
+                        this.animatedValueLimited = this.stringifyValue(this.value);
+                    } else {
+                        this.animatedValueLimited = this.stringifyValue(parseFloat(this.animatedValue.toFixed(n)));
+                    }
+                } else {
+                    this.animatedValue = this.valueMin;
+                    this.animatedValueLimited = "";
+                }
+            }, 25);
         },
         watch: {
             value: function() {
@@ -81,28 +104,28 @@
                 ].join(" ");
             },
             textSize1: function() {
-                return (this.size / 3 - 5) / (this.stringifyValue(this.value).length / 3);
+                return (this.size / 3 - 5) / ((this.animatedValueLimited.length < 5 ? 5 : this.animatedValueLimited.length) / 3);
             },
             textSize2: function() {
                 return Math.min((this.size / 7 - 5) / (this.labelText.toString().length / 7), 12000);
-            },
-            filteredValue: function() {
-                if (typeof (this.value) !== "number") {
-                    return this.valueMin;
-                }
-                if (this.value - this.valueMin > (this.valueMax - this.valueMin) / 225 * 360) {
-                    // This formula was done by simple math.
-                    return (-359.999 / 225 * (this.valueMax - this.valueMin)) + this.valueMin;
-                }
-                if (this.value < this.valueMin) {
-                    return this.valueMin;
-                }
-                return this.value;
             }
         },
         methods: {
-            getPath: function() {
-                return util.sweepPath(this.center, this.center, this.r, 0, -((this.filteredValue - this.valueMin) / (this.valueMax - this.valueMin)) * 225);
+            getPath: function(value, valueMin, valueMax) {
+                return util.sweepPath(this.center, this.center, this.r, 0, -((this.filterValue(value, valueMin, valueMax) - valueMin) / (valueMax - valueMin)) * 225);
+            },
+            filterValue: function(value, valueMin, valueMax) {
+                if (!util.isNumeric(value)) {
+                    return valueMin;
+                }
+                if (value - valueMin > (valueMax - valueMin) / 225 * 360) {
+                    // This formula was done by simple math.
+                    return (-359.999 / 225 * (valueMax - valueMin)) + valueMin;
+                }
+                if (value < valueMin) {
+                    return valueMin;
+                }
+                return value;
             },
             setStyle: function() {
                 this.fade = (this.value === "×" || this.value === "----");

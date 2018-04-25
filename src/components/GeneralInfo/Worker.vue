@@ -2,7 +2,7 @@
     <div class="worker-component-root monospaced">
         <table class="worker">
             <tbody is="transition-group" name="trans">
-            <tr class="theme-color-fade-2" key="-2147483647">
+            <tr class="theme-color-fade" key="-2147483647">
                 <td>#</td>
                 <td class="right-align">OK</td>
                 <td></td>
@@ -16,12 +16,6 @@
                 <td>{{i.algorithm ? i.algorithm : "unknown"}}</td>
                 <td class="invalid">{{i.rejected ? i.rejected : ""}}</td>
             </tr>
-            <!--<tr v-if="workerList.length === 0" class="theme-color-fade-2" key="0">-->
-                <!--<td>-&#45;&#45;</td>-->
-                <!--<td>-&#45;&#45;</td>-->
-                <!--<td>-&#45;&#45;.-</td>-->
-                <!--<td>-&#45;&#45;.-</td>-->
-            <!--</tr>-->
             </tbody>
         </table>
     </div>

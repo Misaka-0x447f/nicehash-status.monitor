@@ -1,13 +1,15 @@
 <template>
     <div class="progress-bar-component-root">
+        <!--suppress JSUnresolvedVariable -->
         <div
             id="bar"
+            ref="bar"
             class="bar"
-            :class="{noTransition: noTransition}"
+            :class="{'no-transition': noTransition}"
             :style="{
                 'background-color': isError ? errorColor : color,
-                'width': progress < 1 ? progress * 100 + '%' : '800%',
-                'opacity': isError || progress < 1 ? '1' : '0'
+                'width': filteredProgress < 1 ? filteredProgress * 100 + '%' : '300%',
+                'opacity': isError || filteredProgress < 1 ? '1' : '0'
             }"
         ></div>
     </div>
@@ -38,22 +40,31 @@
         },
         data: function() {
             return {
+                filteredProgress: this.progress,
+                progressWatchInstanceCount: 0,
                 noTransition: false
             };
         },
         watch: {
             progress: async function(now, past) {
-                if (now < past) {
-                    this.noTransition = true;
-                    let sto = this.progress;
-                    this.progress = 0;
-                    util.flushCss(this.getElementById("bar"));
-                    this.noTransition = false;
-                    util.flushCss(this.getElementById("bar"));
-                    this.progress = sto;
-                } else {
-                    this.noTransition = false;
+                // keep single instance
+                if (this.progressWatchInstanceCount > 1) {
+                    return false;
                 }
+                this.progressWatchInstanceCount++;
+                this.filteredProgress = this.progress;
+                if (now < past) {
+                    this.filteredProgress = 3;
+                    await util.awaitTimeout(500);
+                    this.noTransition = true;
+                    await util.awaitTimeout(100);
+                    this.filteredProgress = 0;
+                    await util.awaitTimeout(100);
+                    this.noTransition = false;
+                    await util.awaitTimeout(100);
+                    this.filteredProgress = this.progress;
+                }
+                this.progressWatchInstanceCount--;
             }
         }
     };
@@ -71,11 +82,11 @@
     .bar {
         height: 3px;
         width: 0;
-        transition: width 5s ease-out, opacity 0.5s;
+        transition: width 3s ease-out, opacity 0.5s;
     }
 
-    /*noinspection ALL*/
-    div.noTransition {
+    /*noinspection CssUnusedSymbol*/
+    div.no-transition {
         transition: none;
     }
 </style>

@@ -123,8 +123,11 @@ export default {
             }
         }
     },
-    flushCss: function(element) {
-        /* eslint-disable no-unused-expressions */
-        element.offsetHeight;
+    awaitTimeout: function(delay) {
+        return new Promise(resolve => {
+            setTimeout(() => {
+                resolve();
+            }, delay);
+        });
     }
 };

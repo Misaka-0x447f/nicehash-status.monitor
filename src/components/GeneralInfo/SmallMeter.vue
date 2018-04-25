@@ -98,10 +98,8 @@
                 return Math.sqrt(2) * this.r / 2;
             },
             borderDraw: function() {
-                return [
-                    "M", this.d + this.borderWidth / 2, this.center,
-                    "A", this.r, this.r, 0, 1, 1, this.center - this.halfSqrt2R, this.center - this.halfSqrt2R
-                ].join(" ");
+                return `M ${this.d + this.borderWidth / 2} ${this.center}
+                        A ${this.r} ${this.r} 0 1 1 ${this.center - this.halfSqrt2R} ${this.center - this.halfSqrt2R}`;
             },
             textSize1: function() {
                 return (this.size / 3 - 5) / ((this.animatedValueLimited.length < 5 ? 5 : this.animatedValueLimited.length) / 3);
@@ -148,17 +146,9 @@
                     fixedPart = util.padZero(fixedPart, this.maxFixedCount);
 
                     if (fixedPart.length > 0) {
-                        return [
-                            sign,
-                            intPart,
-                            ".",
-                            fixedPart
-                        ].join("");
+                        return `${sign}${intPart}.${fixedPart}`;
                     } else {
-                        return [
-                            sign,
-                            intPart
-                        ].join("");
+                        return sign + intPart;
                     }
                 } else {
                     return value;

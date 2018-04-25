@@ -43,11 +43,8 @@ export default {
         let startPos = this.polarToRect(centerX, centerY, r, start);
         let endPos = this.polarToRect(centerX, centerY, r, start + duration);
         let rotation = Math.floor(Math.abs(duration) / 180) % 2 === 0 ? 0 : 1;
-        return [
-            "L", startPos.x, startPos.y,
-            // A rx ry x-axis-rotation large-arc-flag sweep-flag x         y
-            "A", r, r, 0, rotation, duration > 0 ? 0 : 1, endPos.x, endPos.y
-        ].join(" ");
+        return `L ${startPos.x} ${startPos.y}
+                A ${r} ${r} 0 ${rotation} ${duration > 0 ? 0 : 1} ${endPos.x} ${endPos.y}`;
     },
     sweepPath: function(centerX, centerY, r, start, duration) {
         for (let i of [centerX, centerY, r, start, duration]) {
@@ -55,11 +52,9 @@ export default {
                 return "";
             }
         }
-        return [
-            "M", centerX, centerY,
-            this.arcPath(centerX, centerY, r, start, duration),
-            "L", centerX, centerY
-        ].join(" ");
+        return `M ${centerX} ${centerY}
+                ${this.arcPath(centerX, centerY, r, start, duration)}
+                L ${centerX} ${centerY}`;
     },
     checkAddress: async function(addr) {
         return new Promise(resolve => {

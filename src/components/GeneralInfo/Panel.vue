@@ -238,13 +238,13 @@
             runAsyncQuery: async function() {
                 // comes from stat
                 this.mass = {
-                    "init": 1,
-                    "priceBTC": 1.99,
-                    "priceBTCCNY": 1.99,
-                    "statsProvider": 7.06,
-                    "statsProviderEx": 10.08,
-                    "statsProviderWorkers": 6.20,
-                    "balance": 14.03
+                    "init": 1.216,
+                    "priceBTC": 1.216,
+                    "priceBTCCNY": 1.036,
+                    "statsProvider": 5.731,
+                    "statsProviderEx": 1.729,
+                    "statsProviderWorkers": 1.027,
+                    "balance": 5.338
                 };
                 this.progress = this.mass.init;
                 this.progressMax = util.sum(this.mass);

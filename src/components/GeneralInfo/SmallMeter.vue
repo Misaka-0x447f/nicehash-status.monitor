@@ -27,7 +27,7 @@
                 type: Number
             },
             value: {
-                default: 0.73
+                default: 0
             },
             valueMax: {
                 default: 1.9
@@ -66,7 +66,7 @@
                         (this.filterValue(this.value, this.valueMin, this.valueMax) - this.animatedValue) / 10;
                     this.animatedValue += valueChange;
                     if (Math.abs(valueChange) < Math.pow(10, -n)) {
-                        this.animatedValueLimited = this.stringifyValue(this.value);
+                        this.animatedValueLimited = this.stringifyValue(this.filterValue(this.value, this.valueMin, this.valueMax));
                     } else {
                         this.animatedValueLimited = this.stringifyValue(parseFloat(this.animatedValue.toFixed(n)));
                     }

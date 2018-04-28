@@ -47,9 +47,7 @@
             </div>
             <progress-bar
                 :progress="progress / progressMax"
-                :color="'#F5DEB3'"
                 :isError="this.progressOnError"
-                :errorColor="'#f80'"
             >
             </progress-bar>
             <md-progress-spinner
@@ -168,8 +166,8 @@
                 return {
                     size: this.panelSize / 3,
                     value: this.profDiff,
-                    valueMin: -15,
-                    valueMax: 15,
+                    valueMin: -5,
+                    valueMax: 5,
                     labelText: "profDiff%"
                 };
             },
@@ -177,7 +175,7 @@
                 return {
                     size: this.panelSize / 3,
                     value: this.efficiency,
-                    valueMin: 96,
+                    valueMin: 98,
                     valueMax: 100,
                     labelText: "efficiency%"
                 };
@@ -493,7 +491,7 @@
 </script>
 
 <style lang="less" scoped>
-    @theme-color-main: wheat;
+    @import "../../color";
 
     .trans-enter-active, .trans-leave-active {
         transition: opacity ease-out 2s;

@@ -15,8 +15,7 @@
 </script>
 
 <style lang="less" scoped>
-    @theme-color-main: rgba(245, 222, 179, 0.3);
-    @theme-color-bright: rgba(245, 222, 179, 0.6);
+    @import "../../color";
 
     .bottom-center-info-component-root {
         position: absolute;
@@ -28,19 +27,19 @@
         align-items: center;
         justify-content: center;
         text-align: center;
-        color: @theme-color-main;
+        color: @theme-color-main-fade;
     }
 
     #info {
         width: 20em;
         padding-top: 1.5em;
-        border-top: @theme-color-main 1px dashed;
+        border-top: @theme-color-main-fade 1px dashed;
         a, a:visited {
             text-decoration: none;
             color: inherit;
         }
         a:hover {
-            color: @theme-color-bright;
+            color: @theme-color-main;
         }
     }
 </style>

@@ -1,5 +1,5 @@
 <template>
-    <div class="console-component-root theme-color-fade-2">
+    <div class="console-component-root">
         <div class="console monospaced">
             {{log}}
         </div>
@@ -25,7 +25,10 @@
 </script>
 
 <style lang="less" scoped>
+    @import "../../color";
+
     .console-component-root{
+        color: @theme-color-main-fade-2;
         position: fixed;
         top: 12px;
         width: 100%;

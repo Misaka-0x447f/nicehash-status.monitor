@@ -14,10 +14,7 @@
 </script>
 
 <style lang="less">
-    @theme-color-main: wheat;
-    @theme-color-main-fade: rgba(245, 222, 179, 0.67);
-    @theme-color-main-fade-2: rgba(245, 222, 179, 0.33);
-    @theme-color-main-fade-3: rgba(245, 222, 179, 0.1);
+    @import "color";
 
     #container {
         display: flex;
@@ -50,7 +47,6 @@
 
     html {
         font-size: 20px;
-        font-family: "Microsoft JhengHei UI", sans-serif;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
         color: @theme-color-main;
@@ -59,9 +55,11 @@
     }
 
     html > body {
+        font-family: "Microsoft JhengHei UI", sans-serif;
         font-size: 20px;
         line-height: 20px;
         margin: 0;
+        font-weight: 400;
     }
 
     #background-image {
@@ -72,11 +70,16 @@
         position: fixed;
         top: 0;
         z-index: -2147483647;
-        filter: saturate(50%) brightness(66%);
+        filter: brightness(66%);
     }
 
     .monospaced {
-        font-family: "Source Code Pro", "Consolas", monospace;
+        font-family: "Consolas", "Source Code Pro", monospace;
+        font-weight: 100;
+    }
+
+    .digit {
+        font-family: "Consolas","Source Code Pro", "Microsoft JhengHei UI Light", "Lucida Sans Unicode", "Trebuchet MS", sans-serif;
         font-weight: 100;
     }
 </style>

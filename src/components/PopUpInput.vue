@@ -271,7 +271,8 @@
 
 <style lang="less">
     /* this stylesheet is "scoped" by adding custom attr */
-    @theme-color-main: wheat;
+    @import "../color";
+
     .comment-important[vue-user-generated-dom-5d1ref5] {
         font-size: 1.5em;
         color: @theme-color-main;
@@ -279,12 +280,9 @@
 </style>
 
 <style lang="less" scoped>
+    @import "../color";
     /* Animation duration must be matched goto time (method.buttonClick) */
     @ani: 0.8s 0.5s ease-in-out forwards paused;
-    @theme-color-main: wheat;
-    @theme-color-main-fade: rgba(245, 222, 179, 0.67);
-    @theme-color-main-fade-2: rgba(245, 222, 179, 0.33);
-    @theme-color-main-fade-3: rgba(245, 222, 179, 0.1);
 
     .component-root {
         text-shadow: 0 0 2px black;

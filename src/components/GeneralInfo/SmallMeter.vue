@@ -1,12 +1,12 @@
 <template>
-    <div class="small-meter-component-root monospaced" :class="{fade: fade}">
+    <div class="small-meter-component-root" :class="{fade: fade}">
         <svg :width="size" :height="size" fill="none">
-            <path :d="borderDraw" stroke="wheat" :stroke-width="borderWidth" opacity="0.66"></path>
+            <path :d="borderDraw" class="stroke-color" :stroke-width="borderWidth" opacity="0.33"></path>
             <path :d="getPath(animatedValue, this.valueMin, this.valueMax)"
-                  fill="wheat" opacity="0.33"></path>
-            <text class="theme-color" :x="center * 2" :y="center * 0.95" :style="{'font-size': textSize1}">{{ animatedValueLimited }}
+                  class="fill-color" opacity="0.33"></path>
+            <text class="fill-color digit" :x="center * 2" :y="center * 0.95" :style="{'font-size': textSize1}">{{ animatedValueLimited }}
             </text>
-            <text class="theme-color" :x="center * 2" :y="center * 0.95 - textSize1" :style="{'font-size': textSize2}">{{ labelText }}
+            <text class="fill-color monospaced" :x="center * 2" :y="center * 0.95 - textSize1" :style="{'font-size': textSize2}">{{ labelText }}
             </text>
         </svg>
     </div>
@@ -158,6 +158,20 @@
 </script>
 
 <style lang="less" scoped>
+    @import "../../color";
+
+    .stroke-color {
+        stroke: @theme-color-main
+    }
+
+    .fill-color {
+        fill: @theme-color-main
+    }
+
+    .font-color {
+        color: @theme-color-main
+    }
+
     .small-meter-component-root {
         transition: opacity ease-out 1s;
     }

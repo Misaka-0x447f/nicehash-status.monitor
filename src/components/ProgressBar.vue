@@ -5,9 +5,12 @@
             id="bar"
             ref="bar"
             class="bar"
-            :class="{'no-transition': noTransition}"
+            :class="{
+                'no-transition': noTransition,
+                'error-color': isError,
+                'color': !isError
+            }"
             :style="{
-                'background-color': isError ? errorColor : color,
                 'width': filteredProgress < 1 ? filteredProgress * 100 + '%' : '300%',
                 'opacity': isError || filteredProgress < 1 ? '1' : '0'
             }"
@@ -25,17 +28,9 @@
                 default: 0.5,
                 type: Number
             },
-            color: {
-                default: "#F5DEB3",
-                type: String
-            },
             isError: {
                 default: false,
                 type: Boolean
-            },
-            errorColor: {
-                default: "#f80",
-                type: String
             }
         },
         data: function() {
@@ -70,7 +65,17 @@
     };
 </script>
 
-<style scoped>
+<style lang="less" scoped>
+    @import "../color";
+
+    .error-color {
+        background-color: @theme-color-error;
+    }
+
+    .color {
+        background-color: @theme-color-main;
+    }
+
     .progress-bar-component-root {
         position: fixed;
         top: 0;

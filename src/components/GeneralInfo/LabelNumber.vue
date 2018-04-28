@@ -1,7 +1,7 @@
 <template>
     <div class="label-number-component-root" :class="{fade: fade}">
         <div :width="width + 'px'">
-            <div class="digital monospaced">
+            <div class="numeric digit monospaced">
                 {{stringifyValue(value)[0]}}<span class="small">{{stringifyValue(value)[1]}}</span>
             </div>
             <div class="label monospaced">
@@ -78,7 +78,7 @@
         transition: opacity ease-out 1s;
     }
 
-    .digital {
+    .numeric {
         font-size: 3em;
         line-height: 0.9;
         text-align: right;

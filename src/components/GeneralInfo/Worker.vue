@@ -2,7 +2,7 @@
     <div class="worker-component-root monospaced">
         <table class="worker">
             <tbody is="transition-group" name="trans">
-            <tr class="theme-color-fade" key="-2147483647">
+            <tr key="-2147483647" style="opacity: 0.33">
                 <td>#</td>
                 <td class="right-align">OK</td>
                 <td></td>

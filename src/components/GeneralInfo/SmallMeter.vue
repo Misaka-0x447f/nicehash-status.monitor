@@ -62,13 +62,11 @@
                     } else {
                         n = 0;
                     }
-                    let valueChange =
-                        (this.filterValue(this.value, this.valueMin, this.valueMax) - this.animatedValue) / 10;
+                    let valueChange = (this.value - this.animatedValue) / 10;
                     this.animatedValue += valueChange;
-                    if (Math.abs(valueChange) < Math.pow(10, -n)) {
-                        this.animatedValueLimited = this.stringifyValue(
-                            parseFloat(this.filterValue(this.value, this.valueMin, this.valueMax).toFixed(n))
-                        );
+                    // settling the value
+                    if (Math.abs(valueChange) < Math.pow(10, -n - 1)) {
+                        this.animatedValueLimited = this.stringifyValue(parseFloat(this.value.toFixed(n)));
                     } else {
                         this.animatedValueLimited = this.stringifyValue(parseFloat(this.animatedValue.toFixed(n)));
                     }

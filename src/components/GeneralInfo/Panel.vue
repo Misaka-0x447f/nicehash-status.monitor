@@ -38,7 +38,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="panel-2 flex-block">
+                <div class="panel-2 flex-block" v-if="renderWorkerDetail">
                     <worker
                         v-bind="workerListContainer"
                     ></worker>
@@ -88,6 +88,7 @@
         name: "panel",
         data: function() {
             let data = {
+                renderWorkerDetail: true,
                 nicehash: new Nicehash(),
                 panelSize: 400,
                 currentProf: "----",
@@ -226,11 +227,14 @@
 
                 if (document.body.clientWidth < 720) {
                     this.panelSize = 300;
+                    this.renderWorkerDetail = false;
                 } else if (document.body.clientWidth < 960) {
                     this.panelSize = (document.body.clientWidth - 720) * 300 / 720 + 300 - 10;
-                    // +10px reduces element flashing
+                    // 300 -> 400. -10px reduces flashing
+                    this.renderWorkerDetail = false;
                 } else {
                     this.panelSize = 400;
+                    this.renderWorkerDetail = true;
                 }
             },
             runAsyncQuery: async function() {

@@ -1,7 +1,7 @@
 <template>
     <div class="small-meter-component-root" :class="{fade: fade}">
         <svg :width="size" :height="size" fill="none">
-            <path :d="borderDraw" class="stroke-color" :stroke-width="borderWidth" opacity="0.33"></path>
+            <path :d="borderDraw" class="stroke-color" :stroke-width="borderWidth" opacity="0.66"></path>
             <path :d="getPath(animatedValue, this.valueMin, this.valueMax)"
                   class="fill-color" opacity="0.33"></path>
             <text class="fill-color digit" :x="center * 2" :y="center * 0.95" :style="{'font-size': textSize1}">{{ animatedValueLimited }}

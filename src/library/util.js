@@ -9,6 +9,12 @@ export default {
             return (isNaN(a) ? 0 : a) + (isNaN(b) ? 0 : b);
         }, 0);
     },
+    avg: function(array) {
+        if (array.length === 0) {
+            return 0;
+        }
+        return this.sum(array) / array.length;
+    },
     isNumeric: function(n) {
         return !isNaN(parseFloat(n)) && isFinite(n);
     },

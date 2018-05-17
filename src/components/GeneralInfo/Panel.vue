@@ -125,7 +125,7 @@
                 return {
                     width: this.panelSize / 2,
                     value: this.currentProf,
-                    label: "CNY/d currentProf"
+                    label: "CNY/mo 2hr-Prof"
                 };
             },
             averageProfIndicator: function() {
@@ -200,7 +200,7 @@
                 if ((await util.checkAddress(addr)) === "true") {
                     this.nicehash.setAddress(addr);
                     this.runAsyncQuery();
-                    setInterval(this.runAsyncQuery, 60000);
+                    setInterval(this.runAsyncQuery, 180000);
                 } else {
                     this.$router.push("/setup");
                 }
@@ -332,7 +332,6 @@
             getProviderExProcessor: async function(response) {
                 util.jsonCheck(response, ["result.current"]);
                 let currentStatus = response.result.current;
-                let currentProf = 0;
                 let algoLib = {};
 
                 if (!this.algoLibPromiseServer.isResolved) {
@@ -343,57 +342,72 @@
                             "profitability": i.profitability,
                             "suffix": i.suffix
                         };
-                        let currentAlgoSpeedSum = 0;
-                        for (let j of i.data) {
-                            // any accepted speed?
-                            if (j.hasOwnProperty("a")) {
-                                currentAlgoSpeedSum += j.a;
-                            }
-                        }
-                        currentProf += currentAlgoSpeedSum * i.profitability;
                     }
-                    this.currentProf = parseFloat((currentProf * this.bitcoinPriceCNY).toFixed(2));
 
                     // AlgoLib is ready.
                     this.algoLibPromiseServer.resolve(algoLib);
                     this.algoLibPromiseServer.isResolved = true;
                 }
 
-                // Next, we are going to process past data.
-                /*****************************************/
-
-                let pastProf1 = []; // Today's prof
-                let pastReje1 = [];
-                for (let i = util.getUnixTimeStamp(); i > util.getUnixTimeStamp(86400); i -= 300) {
-                    let query = await this.getProviderExPastProfitabilityProcessor(response, i);
-                    pastProf1.push(query.accepted * this.bitcoinPriceCNY);
-                    pastReje1.push(query.rejected * this.bitcoinPriceCNY);
+                // merge & process past data
+                let pastData = {}; // unit: bitcoins
+                for (let i = util.getUnixTimeStamp(); i > util.getUnixTimeStamp(86400 * 2); i -= 300) {
+                    pastData[i - i % 300] = await this.getProviderExPastProfitabilityProcessor(response, i);
                 }
 
-                let pastProf2 = []; // Yesterday's prof
-                for (let i = util.getUnixTimeStamp(86400); i > util.getUnixTimeStamp(86400 * 2); i -= 300) {
-                    pastProf2.push((await this.getProviderExPastProfitabilityProcessor(response, i))["accepted"] * this.bitcoinPriceCNY);
-                }
+                let data = {
+                    "hr2": this.getXhrsData(pastData, 0, 2),
+                    "today": this.getXhrsData(pastData, 0, 24),
+                    "yesterday": this.getXhrsData(pastData, 24, 48)
+                };
 
-                let profDiff = parseFloat(
-                    (
-                        (
-                            (util.sum(pastProf1) / 288) / (util.sum(pastProf2) / 288) - 1
-                        ) * 100
-                    ).toFixed(2)
-                );
+                let profDiff = parseFloat(((data.today.accepted / data.yesterday.accepted - 1) * 100).toFixed(2));
 
                 this.profDiff = (util.isNumeric(profDiff) ? profDiff : "  N/A");
-                this.averageProf = (util.sum(pastProf1) / (86400 / 300) * 30).toFixed(2);
+                this.currentProf = (data.hr2.accepted * this.bitcoinPriceCNY * 30).toFixed(2);
+                this.averageProf = (data.today.accepted * this.bitcoinPriceCNY * 30).toFixed(2);
                 this.efficiency = parseFloat(
-                    (
-                        util.sum(pastProf1) / (util.sum(pastProf1) + util.sum(pastReje1)) * 100
-                    ).toFixed(2)
+                    (data.today.accepted / (data.today.accepted + data.today.rejected) * 100).toFixed(2)
                 );
+            },
+            getXhrsData: function(arr, thisTime, thatTime) {
+                /**
+                 * this function gets a history range and returns its accepted/rejected data.
+                 * @param {object} arr
+                 * The data source. It should seems like this:
+                 *  {
+                 *      (timestamp): {
+                 *          accepted: (accepted hash in bitcoins),
+                 *          rejected: (rejected one)
+                 *      },
+                 *      ...
+                 *  }
+                 * timestamp must to be an integer and timestamp % 300 must be 0.
+                 *
+                 * @param {object} thisTime, thatTime
+                 * time range in hours for calculate average. thisTime should be less that thatTime.
+                 *
+                 * @return
+                 *  {
+                 *      accepted: (accepted hash power in bitcoins.),
+                 *      rejected: (rejected one.)
+                 *  }
+                 */
+                let now = util.getUnixTimeStamp();
+                let accepted = [];
+                let rejected = [];
+                for (let i = now - now % 300 - 3600 * thisTime; i >= util.getUnixTimeStamp(3600 * thatTime); i -= 300) {
+                    accepted.push(arr[i].accepted);
+                    rejected.push(arr[i].rejected);
+                }
+
+                return {
+                    accepted: util.avg(accepted),
+                    rejected: util.avg(rejected)
+                };
             },
             getProviderExPastProfitabilityProcessor: async function(response, unixTimeStamp) {
                 /**
-                 *
                  * @Return
                  * (Object).accepted - in bitcoins
                  * (Object).rejected
@@ -412,13 +426,14 @@
                 let reject = 0;
                 for (let i of past) {
                     /**
-                     * fixed undefined "i.algo"
+                     * this jsdoc fixed undefined "i.algo"
                      * @property {object[]} i
                      * @property {string} i.algo
                      */
                     // single algo
                     for (let j of i.data) {
-                        // single timestamp
+                        // Single timestamp. This will find the sample point we want.
+                        // If failed to locate, no data at this point and prof keeps zero.
                         if (j[0] === Math.floor(unixTimeStamp / 300)) {
                             let value = j[1];
                             if (j[1].hasOwnProperty("a")) {

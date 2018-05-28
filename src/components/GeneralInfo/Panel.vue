@@ -186,7 +186,12 @@
             this.nicehash.queueMode();
             this.checkCookie();
             this.setStyle();
-            window.addEventListener("resize", throttle(75, this.setStyle));
+            window.addEventListener("resize", resizeMe.bind(this));
+            function resizeMe() {
+                // this function cannot be used in other place.
+                // noinspection JSPotentiallyInvalidUsageOfThis
+                throttle(75, this.setStyle);
+            }
             // continues after cookie checked.
         },
         methods: {

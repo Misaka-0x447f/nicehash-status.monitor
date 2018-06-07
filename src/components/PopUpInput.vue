@@ -42,10 +42,13 @@
                     <span class="flex-split">
 
                     </span>
-                    <span v-for="i in buttons" class="button"
-                          :class="{disabled: (i.linkValidator && isValid === 'false')}" v-on:click="buttonClick(i)"
-                          :key="i.length">
-                        {{ i.text }}
+                    <span class="buttons-container" v-on:click="buttonClick">
+                        <span v-for="i in buttons" class="button"
+                              :class="{disabled: (i.linkValidator && isValid === 'false')}"
+                              :data-button-info="JSON.stringify(i)"
+                              :key="i.length">
+                            {{ i.text }}
+                        </span>
                     </span>
                 </div>
             </div>
@@ -231,10 +234,11 @@
                 this.$emit(name, pkg);
                 this.showExtendInvalidTips = false;
             },
-            buttonClick: function(buttonInstance) {
+            buttonClick: function(e) {
+                let data = JSON.parse(e.target.getAttribute("data-button-info"));
                 // Emit field info on click?
-                if (buttonInstance.hasOwnProperty("eventString")) {
-                    this.emitEverything(buttonInstance.eventString);
+                if (data.hasOwnProperty("eventString")) {
+                    this.emitEverything(data.eventString);
                 }
 
                 // Let user know if they are wrong
@@ -248,17 +252,17 @@
                  * Condition is true: #0 and (#1 or #2)
                  */
                 if (
-                    buttonInstance.hasOwnProperty("goto") && (
+                    data.hasOwnProperty("goto") && (
                         (
-                            !buttonInstance.hasOwnProperty("linkValidator") ||
-                            buttonInstance.linkValidator !== true
+                            !data.hasOwnProperty("linkValidator") ||
+                            data.linkValidator !== true
                         ) || (
-                            buttonInstance.linkValidator === true &&
+                            data.linkValidator === true &&
                             this.isValid !== "false"
                         )
                     )
                 ) {
-                    this.$router.push(buttonInstance.goto);
+                    this.$router.push(data.goto);
                 }
             },
             enterClick: function() {

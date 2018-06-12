@@ -253,6 +253,9 @@
                     "statsProviderWorkers": 1.027,
                     "balance": 5.338
                 };
+                if (typeof Cookies.get("key") !== "string") {
+                    this.mass.balance = 0;
+                }
                 this.progress = this.mass.init;
                 this.progressMax = util.sum(this.mass);
                 this.progressOnError = false;

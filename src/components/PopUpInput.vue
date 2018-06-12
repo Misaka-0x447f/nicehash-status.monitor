@@ -207,6 +207,7 @@
             }
 
             this.$nextTick(() => {
+                let flagAutoClick = false;
                 // the following are how auto-fill parameter works
                 let autoFillElements = this.$el.querySelectorAll("[data-autoFillName]");
                 let parameterList = this.$route.query;
@@ -215,12 +216,18 @@
                     if (parameterList.hasOwnProperty(slot)) {
                         i.value = parameterList[slot];
 
+                        flagAutoClick = true;
+
                         // emit an event if has this attr
                         // TODO: have no idea about how to emit an event here. Maybe solve it later.
                         if (i.attributes.hasOwnProperty("data-inputEventName")) {
                             this.$emit(i.attributes["data-inputEventName"]["nodeValue"], i.value);
                         }
                     }
+                }
+                // Auto click button
+                if (flagAutoClick) {
+                    this.buttonClickHandler(this.buttons[this.buttons.length - 1]);
                 }
             });
         },
@@ -236,6 +243,9 @@
             },
             buttonClick: function(e) {
                 let data = JSON.parse(e.target.getAttribute("data-button-info"));
+                this.buttonClickHandler(data);
+            },
+            buttonClickHandler: function(data) {
                 // Emit field info on click?
                 if (data.hasOwnProperty("eventString")) {
                     this.emitEverything(data.eventString);

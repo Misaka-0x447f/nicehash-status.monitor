@@ -16,6 +16,11 @@
 <style lang="less">
     @import "color";
 
+    @font-face {
+        font-family: "Consolas";
+        src: url("assets/consola.ttf");
+    }
+
     #container {
         display: flex;
         width: 100vw;

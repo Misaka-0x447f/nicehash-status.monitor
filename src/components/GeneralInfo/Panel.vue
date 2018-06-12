@@ -132,7 +132,7 @@
                 return {
                     width: this.panelSize / 2,
                     value: this.averageProf,
-                    label: "CNY/mo averageProf"
+                    label: "CNY/mo 24hr-Prof"
                 };
             },
             unpaidBalanceIndicator: function() {
